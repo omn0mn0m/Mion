@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  {% block title %}<title>Mion - AWC Utility</title>{% endblock %}
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Add additional CSS in static file -->
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+  <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+
+<body class="bg-light">
+  <div class="container-fluid">
+    <div class="row h-100">
+      <div class="col-sm-2 h-100 sticky-top">
+	<!-- insert default navigation for every page -->
+	{% block sidebar %}
+	<nav class="nav flex-column nav-pills">
+	  <a class="nav-item nav-link" href="{% url 'awc:index' %}">Home</a>
+	  <a class="nav-item nav-link">Start New Challenge</a>
+	  <a class="nav-item nav-link">Update Challenge</a>
+
+	  {% if user.name %}
+	  <a class="nav-item nav-link" href="{% url 'awc:logout' %}">Log out</a>
+	  <a class="nav-item nav-link" href="https://anilist.co/user/{{ user.user_id }}"><img src={{ user.avatar_url }} width=100%></a>
+	  {% else %}
+	  <a class="nav-item nav-link" href="https://anilist.co/api/v2/oauth/authorize?client_id=3592&redirect_uri=http://nomniverse.duckdns.org:8000/awc/authenticate&response_type=code">Login with AniList</a>
+	  {% endif %}
+	</nav>
+	{% endblock %}
+      </div>
+      
+      <div class="col-sm-10">
+	{% block content %}<!-- default content text (typically empty) -->{% endblock %}
+
+	{% include "./components/footer.html" %}
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>

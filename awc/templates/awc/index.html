@@ -1,0 +1,99 @@
+{% extends "base-generic.html" %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="row p-3 bg-primary text-light">
+    <div class="w-100" style="text-align: center"><h1>Submission</h1></div>
+  </div>
+  <div class="row p-3">
+    <div class="col-md">
+    <h2>Fill Out New Challenge Code</h2>
+
+    {% if user.is_admin %}
+    <p>Don't see a challenge? Create a new one <a href="{% url 'awc:add-challenge' %}">here</a>.</p>
+    {% endif %}
+
+    <h3>Genre Challenges</h3>
+    <ul>
+      {% for challenge in genre_challenge_list %}
+      <li><a href="{% url 'awc:edit-new' challenge.name %}">{{ challenge.name }}</a></li>
+      {% empty %}
+      <p>No challenges found.</p>
+      {% endfor %}
+    </ul>
+
+    <h3>Timed Challenges</h3>
+    <ul>
+      {% for challenge in timed_challenge_list %}
+      <li><a href="{% url 'awc:edit-new' challenge.name %}">{{ challenge.name }}</a></li>
+      {% empty %}
+      <p>No challenges found.</p>
+      {% endfor %}
+    </ul>
+
+    <h3>Tier Challenges</h3>
+    <ul>
+      {% for challenge in tier_challenge_list %}
+      <li><a href="{% url 'awc:edit-new' challenge.name %}">{{ challenge.name }}</a></li>
+      {% empty %}
+      <p>No challenges found.</p>
+      {% endfor %}
+    </ul>
+
+    <h3>Collection Challenges</h3>
+    <ul>
+      {% for challenge in collection_challenge_list %}
+      <li><a href="{% url 'awc:edit-new' challenge.name %}">{{ challenge.name }}</a></li>
+      {% empty %}
+      <p>No challenges found.</p>
+      {% endfor %}
+    </ul>
+
+    <h3>Classic Challenges</h3>
+    <ul>
+      {% for challenge in classic_challenge_list %}
+      <li><a href="{% url 'awc:edit-new' challenge.name %}">{{ challenge.name }}</a></li>
+      {% empty %}
+      <p>No challenges found.</p>
+      {% endfor %}
+    </ul>
+
+    <h3>Puzzle Challenges</h3>
+    <ul>
+      {% for challenge in puzzle_challenge_list %}
+      <li><a href="{% url 'awc:edit-new' challenge.name %}">{{ challenge.name }}</a></li>
+      {% empty %}
+      <p>No challenges found.</p>
+      {% endfor %}
+    </ul>
+
+    <h3>Special Challenges</h3>
+    <ul>
+      {% for challenge in special_challenge_list %}
+      <li><a href="{% url 'awc:edit-new' challenge.name %}">{{ challenge.name }}</a></li>
+      {% empty %}
+      <p>No challenges found.</p>
+      {% endfor %}
+    </ul>
+    </div>
+
+    <div class="col-md">
+    {% if user.name %}
+    <h2>Edit Existing Challenge Code</h2>
+
+    <a href=''>Scan for existing challenges.</a><br>
+    <a href="{% url 'awc:add-existing-submission' %}">Manually add existing submission</a><br><br>
+
+    <ul>
+      {% for submission in user.submission_set.all %}
+      <li><a href="{% url 'awc:edit' submission.challenge %}">{{ submission.challenge }}</a></li>
+      {% empty %}
+      <p>No existing awc found.</p>
+      {% endfor %}
+    </ul>
+    {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+    
