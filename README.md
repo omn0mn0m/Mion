@@ -1,4 +1,5 @@
 # Mion
+ Anime Watch Club utilities
 
 ## Installation
 Mion is configured to run on Heroku.
