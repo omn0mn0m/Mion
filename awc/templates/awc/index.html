@@ -78,20 +78,23 @@
     </div>
 
     <div class="col-md">
-    {% if user.name %}
-    <h2>Edit Existing Challenge Code</h2>
-
-    <a href=''>Scan for existing challenges.</a><br>
-    <a href="{% url 'awc:add-existing-submission' %}">Manually add existing submission</a><br><br>
-
-    <ul>
-      {% for submission in user.submission_set.all %}
-      <li><a href="{% url 'awc:edit' submission.challenge %}">{{ submission.challenge }}</a></li>
-      {% empty %}
-      <p>No existing awc found.</p>
-      {% endfor %}
-    </ul>
-    {% endif %}
+      <h2>Edit Existing Challenge Code</h2>
+      {% if user.name %}
+      <a href=''>Scan for existing challenges.</a><br>
+      <a href="{% url 'awc:add-existing-submission' %}">Manually add existing submission</a><br><br>
+      
+      <ul>
+	{% for submission in user.submission_set.all %}
+	<li><a href="{% url 'awc:edit' submission.challenge %}">{{ submission.challenge }}</a></li>
+	{% empty %}
+	<p>No existing awc found.</p>
+	{% endfor %}
+      </ul>
+      {% else %}
+      <p>
+	<a href="https://anilist.co/api/v2/oauth/authorize?client_id={{ anilist_client_id  }}&redirect_uri={{ anilist_redirect_uri }}&response_type=code">Login with AniList</a>
+      </p>
+      {% endif %}
     </div>
   </div>
 </div>

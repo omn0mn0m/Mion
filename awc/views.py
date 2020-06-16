@@ -14,6 +14,10 @@ import os
 ANILIST_API_URL = 'https://graphql.anilist.co'
 ANILIST_AUTH_URL = 'https://anilist.co/api/v2/oauth/token'
 
+anilist_client_id = os.environ.get('ANILIST_CLIENT_ID')
+anilist_client_secret = os.environ.get('ANILIST_CLIENT_SECRET')
+anilist_redirect_uri= os.environ.get('ANILIST_REDIRECT_URI')
+
 # View Utilities
 def get_comment_string(challenge_info, requirements, category, request):
     reqs = []
@@ -77,6 +81,9 @@ def index(request):
     else:
         if 'user' in context:
             del context['user']
+
+    context['anilist_redirect_uri'] = anilist_redirect_uri
+    context['anilist_client_id'] = anilist_client_id
     
     return render(request, 'awc/index.html', context)
 
@@ -88,6 +95,9 @@ def edit(request, challenge_name, edit=False):
     requirements = challenge.requirement_set.all().order_by("bonus", "number")
 
     context = {}
+
+    context['anilist_redirect_uri'] = anilist_redirect_uri
+    context['anilist_client_id'] = anilist_client_id
 
     if edit:
         query = '''
@@ -242,6 +252,9 @@ def add_existing_submission(request):
         'form': form,
     }
 
+    context['anilist_redirect_uri'] = anilist_redirect_uri
+    context['anilist_client_id'] = anilist_client_id
+
     if 'user' in request.session:
         try:
             context['user'] = User.objects.get(name=request.session['user']['name'])
@@ -272,6 +285,9 @@ def add_challenge(request):
         'form': form,
     }
 
+    context['anilist_redirect_uri'] = anilist_redirect_uri
+    context['anilist_client_id'] = anilist_client_id
+
     if 'user' in request.session:
         try:
             context['user'] = User.objects.get(name=request.session['user']['name'])
@@ -293,15 +309,11 @@ def authenticate(request):
 
     json_body = {
         'grant_type': 'authorization_code',
-        'client_id': 3592,
-        'client_secret': os.environ.get('ANILIST_CLIENT_SECRET'),
+        'client_id': anilist_client_id,
+        'client_secret': anilist_client_secret,
+        'redirect_uri': anilist_redirect_uri,
         'code': authorisation_code,
     }
-    
-    if os.environ.get('DJANGO_DEBUG', '') != 'False':
-        json_body['redirect_uri'] = 'http://nomniverse.duckdns.org:8000/awc/authenticate'
-    else:
-        json_body['redirect_uri'] = 'https://mii-chan.herokuapp.com/awc/authenticate'
 
     response = requests.post(ANILIST_AUTH_URL, json=json_body, headers=headers)
 

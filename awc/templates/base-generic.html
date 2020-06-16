@@ -26,7 +26,7 @@
 	  <a class="nav-item nav-link" href="{% url 'awc:logout' %}">Log out</a>
 	  <a class="nav-item nav-link" href="https://anilist.co/user/{{ user.user_id }}"><img src={{ user.avatar_url }} width=100%></a>
 	  {% else %}
-	  <a class="nav-item nav-link" href="https://anilist.co/api/v2/oauth/authorize?client_id=3592&redirect_uri=http://nomniverse.duckdns.org:8000/awc/authenticate&response_type=code">Login with AniList</a>
+	  <a class="nav-item nav-link" href="https://anilist.co/api/v2/oauth/authorize?client_id={{ anilist_client_id  }}&redirect_uri={{ anilist_redirect_uri }}&response_type=code">Login with AniList</a>
 	  {% endif %}
 	</nav>
 	{% endblock %}
