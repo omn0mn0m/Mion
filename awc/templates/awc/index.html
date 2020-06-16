@@ -1,18 +1,17 @@
 {% extends "base-generic.html" %}
 
 {% block content %}
-<div class="container-fluid">
-  <div class="row p-3 bg-primary text-light">
-    <div class="w-100" style="text-align: center"><h1>Submission</h1></div>
-  </div>
-  <div class="row p-3">
-    <div class="col-md">
-    <h2>Fill Out New Challenge Code</h2>
-
+<div class="row p-3 bg-primary text-light">
+  <div class="w-100" style="text-align: center"><h1>AWC Challenge Tool</h1></div>
+</div>
+<div class="row p-3">
+  <div class="col-md">
+    <h2>Start New Challenge</h2>
+    
     {% if user.is_admin %}
     <p>Don't see a challenge? Create a new one <a href="{% url 'awc:add-challenge' %}">here</a>.</p>
     {% endif %}
-
+    
     <h3>Genre Challenges</h3>
     <ul>
       {% for challenge in genre_challenge_list %}
@@ -21,7 +20,7 @@
       <p>No challenges found.</p>
       {% endfor %}
     </ul>
-
+    
     <h3>Timed Challenges</h3>
     <ul>
       {% for challenge in timed_challenge_list %}
@@ -75,27 +74,26 @@
       <p>No challenges found.</p>
       {% endfor %}
     </ul>
-    </div>
+  </div>
 
-    <div class="col-md">
-      <h2>Edit Existing Challenge Code</h2>
-      {% if user.name %}
-      <a href=''>Scan for existing challenges.</a><br>
-      <a href="{% url 'awc:add-existing-submission' %}">Manually add existing submission</a><br><br>
-      
-      <ul>
-	{% for submission in user.submission_set.all %}
-	<li><a href="{% url 'awc:edit' submission.challenge %}">{{ submission.challenge }}</a></li>
-	{% empty %}
-	<p>No existing awc found.</p>
-	{% endfor %}
-      </ul>
-      {% else %}
-      <p>
-	<a href="https://anilist.co/api/v2/oauth/authorize?client_id={{ anilist_client_id  }}&redirect_uri={{ anilist_redirect_uri }}&response_type=code">Login with AniList</a>
-      </p>
-      {% endif %}
-    </div>
+  <div class="col-md">
+    <h2>Edit Your Challenges</h2>
+    {% if user.name %}
+    <a class="btn btn-primary btn-block" href=''>Scan</a>
+    <a class="btn btn-primary btn-block" href="{% url 'awc:add-existing-submission' %}">Add</a><br><br>
+    
+    <ul>
+      {% for submission in user.submission_set.all %}
+      <li><a href="{% url 'awc:edit' submission.challenge %}">{{ submission.challenge }}</a></li>
+      {% empty %}
+      <p>No existing challenges found.</p>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p>
+      <a href="https://anilist.co/api/v2/oauth/authorize?client_id={{ anilist_client_id  }}&redirect_uri={{ anilist_redirect_uri }}&response_type=code">Login with AniList</a>
+    </p>
+    {% endif %}
   </div>
 </div>
 {% endblock %}
