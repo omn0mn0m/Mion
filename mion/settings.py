@@ -24,7 +24,7 @@ SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', '6ix@)zvg=8s^o_oxa_2y)#b3wd&dc$
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DJANGO_DEBUG', '') != 'False'
 
-ALLOWED_HOSTS = ['nomniverse.duckdns.org', 'localhost']
+ALLOWED_HOSTS = ['mii-chan.herokuapp.com', 'nomniverse.duckdns.org', 'localhost']
 
 # Production Settings that can always be on
 SECURE_CONTENT_TYPE_NOSNIFF = True
