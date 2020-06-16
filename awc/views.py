@@ -295,9 +295,13 @@ def authenticate(request):
         'grant_type': 'authorization_code',
         'client_id': 3592,
         'client_secret': os.environ.get('ANILIST_CLIENT_SECRET'),
-        'redirect_uri': 'http://nomniverse.duckdns.org:8000/awc/authenticate',
         'code': authorisation_code,
     }
+    
+    if os.environ.get('DJANGO_DEBUG', '') != 'False':
+        json_body['redirect_uri'] = 'http://nomniverse.duckdns.org:8000/awc/authenticate'
+    else:
+        json_body['redirect_uri'] = 'https://mii-chan.herokuapp.com/awc/authenticate'
 
     response = requests.post(ANILIST_AUTH_URL, json=json_body, headers=headers)
 
