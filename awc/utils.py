@@ -54,8 +54,8 @@ class Utils(object):
         parsed_comment = {}
         requirements = []
 
-        parsed_comment['start'] = lines[2].strip()[22:]
-        parsed_comment['finish'] = lines[3].strip()[24:]
+        parsed_comment['start'] = re.split('Start Date: ', lines[2])[1]
+        parsed_comment['finish'] = re.split('Finish Date: ', lines[3])[1]
         parsed_comment['category'] = submission.challenge.category
 
         req_start_index = [i for i, s in enumerate(lines) if "Legend: [X] = Completed [O] = Not Completed" in s][0]
@@ -127,7 +127,7 @@ class Utils(object):
                     
                     # Determine the anime
                     requirement['anime'] = re.search('\_\s\[(.*)\]\(https:\/\/anilist\.co\/anime\/[0-9\/]+\)', line).group(1)
-                    requirement['link'] = re.search(r'\((https:\/\/anilist\.co\/anime\/[0-9]+\/)\)', line).group(1)
+                    requirement['link'] = re.search(r'\((https:\/\/anilist\.co\/anime\/[0-9\/]+)\)', line).group(1)
 
                     # Get extra stuff
                     requirement['extra_newline'] = submission.challenge.requirement_set.get(number=requirement['number'], bonus=bonus).extra_newline
