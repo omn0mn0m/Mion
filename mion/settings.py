@@ -39,6 +39,7 @@ if not DEBUG:
 
 INSTALLED_APPS = [
     'awc.apps.AWCConfig',
+    'homepage.apps.HomepageConfig',
     'crispy_forms',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -64,7 +65,7 @@ ROOT_URLCONF = 'mion.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [(os.path.join(BASE_DIR, 'mion/templates')),],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

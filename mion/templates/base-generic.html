@@ -16,19 +16,20 @@
 
 <body class="bg-light">
   <nav class="navbar sticky-top navbar-expand-lg navbar-light bg-light">
-    <a class="navbar-brand" href="{% url 'awc:index' %}">Mii-chan</a>
+    <a class="navbar-brand" href="{% url 'homepage:index' %}">Mion</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarNavDropdown">
-      <a class="nav-item nav-link" href="{% url 'awc:index' %}">Home</a>
       <a class="nav-item nav-link" href="{% url 'awc:index' %}">AWC Tools</a>
       <a class="nav-item nav-link" href="{% url 'awc:index' %}">MRC Tools</a>
-	
+
+      {% if not home %}
       {% if user.name %}
       <a class="nav-item nav-link pull-right" href="{% url 'awc:logout' %}">Log out: {{ user.name }}</a>
       {% else %}
       <a class="nav-item nav-link" href="https://anilist.co/api/v2/oauth/authorize?client_id={{ anilist_client_id  }}&redirect_uri={{ anilist_redirect_uri }}&response_type=code">Login with AniList</a>
+      {% endif %}
       {% endif %}
     </div>
   </nav>
