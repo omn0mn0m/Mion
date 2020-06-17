@@ -64,13 +64,13 @@ def get_comment_string(challenge_info, requirements, category, request):
 # Create your views here.
 def index(request):
     context = {
-        'genre_challenge_list': Challenge.objects.filter(category=Challenge.GENRE).order_by('-name'),
-        'timed_challenge_list': Challenge.objects.filter(category=Challenge.TIMED).order_by('-name'),
-        'tier_challenge_list': Challenge.objects.filter(category=Challenge.TIER).order_by('-name'),
-        'collection_challenge_list': Challenge.objects.filter(category=Challenge.COLLECTION).order_by('-name'),
-        'classic_challenge_list': Challenge.objects.filter(category=Challenge.CLASSIC).order_by('-name'), 
-        'puzzle_challenge_list': Challenge.objects.filter(category=Challenge.PUZZLE).order_by('-name'),
-        'special_challenge_list': Challenge.objects.filter(category=Challenge.SPECIAL).order_by('-name'),
+        'genre_challenge_list': Challenge.objects.filter(category=Challenge.GENRE).order_by('name'),
+        'timed_challenge_list': Challenge.objects.filter(category=Challenge.TIMED).order_by('name'),
+        'tier_challenge_list': Challenge.objects.filter(category=Challenge.TIER).order_by('name'),
+        'collection_challenge_list': Challenge.objects.filter(category=Challenge.COLLECTION).order_by('name'),
+        'classic_challenge_list': Challenge.objects.filter(category=Challenge.CLASSIC).order_by('name'), 
+        'puzzle_challenge_list': Challenge.objects.filter(category=Challenge.PUZZLE).order_by('name'),
+        'special_challenge_list': Challenge.objects.filter(category=Challenge.SPECIAL).order_by('name'),
     }
 
     if 'user' in request.session:
