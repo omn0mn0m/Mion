@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  {% block title %}<title>Mion - AWC Utility</title>{% endblock %}
+  {% block title %}<title>Mion - AWC Tools</title>{% endblock %}
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <!-- Add additional CSS in static file -->
@@ -16,7 +16,7 @@
 
 <body class="bg-light">
   <nav class="navbar sticky-top navbar-expand-lg navbar-light bg-light">
-    <a class="navbar-brand" href="#">Mii-chan</a>
+    <a class="navbar-brand" href="{% url 'awc:index' %}">Mii-chan</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
