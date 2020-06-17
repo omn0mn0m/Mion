@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  {% block title %}<title>Mion - AWC Tools</title>{% endblock %}
+  {% block title %}<title>Mion - Challenge Tools</title>{% endblock %}
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <!-- Add additional CSS in static file -->
@@ -21,8 +21,8 @@
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarNavDropdown">
-      <a class="nav-item nav-link" href="{% url 'awc:index' %}">AWC Tools</a>
-      <a class="nav-item nav-link" href="{% url 'awc:index' %}">MRC Tools</a>
+      <a class="nav-item nav-link" href="{% url 'awc:index' %}">Anime Challenge Tools</a>
+      <a class="nav-item nav-link" href="{% url 'awc:index' %}">Manga Challenge Tools</a>
 
       {% if not home %}
       {% if user.name %}

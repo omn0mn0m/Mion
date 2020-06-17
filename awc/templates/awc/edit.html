@@ -1,11 +1,10 @@
 {% extends "base-generic.html" %}
 
 {% block content %}
+    <h1>{{ challenge.name  }} <a href="https://anilist.co/forum/thread/{{ challenge.thread_id  }}">[Thread]</a></h1>
 
     {% if submission %}
     <h1>{{ challenge.name }} <a href="https://anilist.co/forum/thread/{{ submission.thread_id  }}/comment/{{ submission.comment_id }}">[Submission]</a></h1>
-    {% else %}
-    <h1>{{ challenge.name  }} <a href="https://anilist.co/forum/thread/{{ challenge.thread_id  }}">[Thread]</a></h1>
     {% endif %}
 
     <p>
@@ -32,6 +31,8 @@
 
 	<label for="challenge-finish">Challenge Finish Date</label>
 	<input type="text" name="challenge-finish" id="challenge-finish" value={{ response.finish }}><br><br>
+
+	<p>These requirements are automatically generated from a challenge code. The <a href="https://anilist.co/forum/thread/{{ challenge.thread_id  }}">full challenge post</a> should still be read through for information and reference.</p>
 
 	{% for requirement in response.requirements %}
 
@@ -132,14 +133,20 @@
 	{% if requirement.extra %}
 	<label for="requirement-extra-{{ requirement.number }}">Extra</label>
 	<input type="text" name="requirement-extra-{{ requirement.number }}" id="requirement-extra-{{ requirement.number }}" value="{{ requirement.extra }}" size=100>
-
-	<br><br>
 	{% endif %}
 	{% endif %}
 
 	{% endfor %}
-	
-	<input type="submit" value="Submit">
+
+	<br><br>
+
+	<p>These requirements are automatically generated from a challenge code. The <a href="https://anilist.co/forum/thread/{{ challenge.thread_id  }}">full challenge post</a> should still be read through for information and reference.</p>
+
+	{% if edit %}
+	<input type="submit" value="Update Challenge">
+	{% else %}
+	<input type="submit" value="Create Challenge">
+	{% endif %}
       </form>
 
     </p>

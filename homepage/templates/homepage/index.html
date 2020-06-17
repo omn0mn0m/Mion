@@ -3,7 +3,7 @@
 {% block content %}
 
 <div class="row p-3 bg-primary text-light">
-  <div class="w-100" style="text-align: center"><h1>Mion - AWC Tools</h1></div>
+  <div class="w-100" style="text-align: center"><h1>Mion - Challenge Tools</h1></div>
 </div>
 
 <div class="jumbotron">
@@ -15,13 +15,17 @@
       </div>
       <div class="col-lg-8">
 	<p class="lead text-justify">
-	  Mion is an open-source Django web application that helps manage Anime Watch Club and Manga Reading Club challenges. As of right now, it only is able to handle Monthly and Genre AWC challenges. Mion is able to make challenge forum posts for you, edit them, and delete them. No more having to parse through a challenge code manually to add an anime to a requirement.
+	  Mion is an unofficial open-source Django web application that helps manage Anime Watch Club and Manga Reading Club challenges. Mion is able to make challenge forum posts for you, edit them, and delete them. No more having to parse through a challenge code manually to add an anime to a requirement.
 	</p>
+
+	<p>
+	  As of right now, it only is able to handle Monthly and Genre AWC challenges.
+	</P>
 	
 	<p class="lead text-center">
-	  <a class="btn btn-primary btn-lg" href="{% url 'awc:index' %}">AWC Challenge Tool</a>
+	  <a class="btn btn-primary btn-lg" href="{% url 'awc:index' %}">Anime Challenge Tool</a>
 	  
-	  <a class="btn btn-primary btn-lg" href="{% url 'awc:index' %}">MRC Challenge Tool</a>
+	  <a class="btn btn-primary btn-lg" href="{% url 'awc:index' %}">Manga Challenge Tool</a>
 	</p>
 	
 	<p>
