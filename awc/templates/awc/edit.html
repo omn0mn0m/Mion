@@ -36,9 +36,9 @@
 	{% for requirement in response.requirements %}
 
 	{% if requirement.bonus %}
-	<h2>Bonus Requirement {{ requirement.number }}</h2>
+	<h2 id="requirement-{{ requirement.number}}">Bonus Requirement {{ requirement.number }}</h2>
 	{% else %}
-	<h2>Requirement {{ requirement.number }}</h2>
+	<h2 id="bonus-requirement-{{ requirement.number}}">Requirement {{ requirement.number }}</h2>
 	{% endif %}
 
 	<p>{{ requirement.text }}</p>
