@@ -108,16 +108,16 @@
     {% endif %}
     {% else %}
     <label for="requirement-start-{{ requirement.number }}">Start Date</label>
-    <input type="text" name="requirement-start-{{ requirement.number }}" id="requirement-start-{{ requirement.number }}" value={{ requirement.start }}>
+    <input type="text" name="requirement-start-{{ requirement.number }}" id="requirement-start-dates[]" value={{ requirement.start }}>
     
     <label for="requirement-finish-{{ requirement.number }}">Finish Date</label>
-    <input type="text" name="requirement-finish-{{ requirement.number }}" id="requirement-finish-{{ requirement.number }}" value={{ requirement.finish }}><br><br>
+    <input type="text" name="requirement-finish-{{ requirement.number }}" id="requirement-finish-dates[]" value={{ requirement.finish }}><br><br>
 
     <label for="requirement-anime-{{ requirement.number }}">Anime</label>
-    <input type="text" name="requirement-anime-{{ requirement.number }}" id="requirement-anime-{{ requirement.number }}" value="{{ requirement.anime }}">
+    <input type="text" name="requirement-anime-{{ requirement.number }}" id="anime-titles[]" value="{{ requirement.anime }}">
     
     <label for="requirement-link-{{ requirement.number }}">Link</label>
-    <input type="text" name="requirement-link-{{ requirement.number }}" id="requirement-link-{{ requirement.number }}" value="{{ requirement.link }}"><br><br>
+    <input type="text" name="requirement-link-{{ requirement.number }}" id="anime-links[]" value="{{ requirement.link }}"><br><br>
     
     {% if requirement.extra %}
     <label for="requirement-extra-{{ requirement.number }}">Extra</label>
@@ -154,16 +154,61 @@
 <script>
 
   function checkCompleted() {
-      var $checkboxes = $('input[id="completed[]"]');
+      var valid = true;
 
+      document.getElementById('errors').innerHTML = ""
+
+      // Checks for completed status
+      var $checkboxes = $('input[id="completed[]"]');
+      
       for (const status of $checkboxes) {
 	  if (status.checked == false) {
-	      document.getElementById('errors').innerHTML = "Please complete all requirements before submitting..."
-	      return false;
+	      document.getElementById('errors').innerHTML = document.getElementById('errors').innerHTML + "<br> Please complete all requirements before submitting...";
+	      valid = false;
 	  }
       }
 
-      return true;
+      // Checks for start dates
+      var $startDates = $('input[id="requirement-start-dates[]"]');
+
+      for (const startDate of $startDates) {
+	  if (startDate.value == "DD/MM/YYYY") {
+	      document.getElementById('errors').innerHTML = document.getElementById('errors').innerHTML + "<br> Please enter start dates before submitting...";
+	      valid = false;
+	  }
+      }
+
+      // Checks for finish dates
+      var $finishDates = $('input[id="requirement-finish-dates[]"]');
+
+      for (const finishDate of $finishDates) {
+	  if (finishDate.value == "DD/MM/YYYY") {
+	      document.getElementById('errors').innerHTML = document.getElementById('errors').innerHTML + "<br> Please enter finish dates before submitting...";
+	      valid = false;
+	  }
+      }
+
+      // Checks for anime title
+      var $animeTitles = $('input[id="anime-titles[]"]');
+
+      for (const animeTitle of $animeTitles) {
+	  if (animeTitle.value == "Anime Title") {
+	      document.getElementById('errors').innerHTML = document.getElementById('errors').innerHTML + "<br> Please enter anime titles before submitting...";
+	      valid = false;
+	  }
+      }
+
+      // Checks for anime link
+      var $animeLinks = $('input[id="anime-links[]"]');
+
+      for (const animeLink of $animeLinks) {
+	  if (animeLink.value == "https://anilist.co/anime/00000/") {
+	      document.getElementById('errors').innerHTML = document.getElementById('errors').innerHTML + "<br> Please enter anime links before submitting...";
+	      valid = false;
+	  }
+      }
+
+      return valid;
   }
   
 </script>
