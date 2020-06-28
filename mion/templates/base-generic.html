@@ -5,6 +5,11 @@
   {% block title %}<title>Mion - Challenge Tools</title>{% endblock %}
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Per page CSS -->
+  {% block style %}
+  {% endblock style %}
+  
   <!-- Add additional CSS in static file -->
   {% load static %}
   <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
@@ -38,6 +43,10 @@
   </div>
 
   {% include "./components/footer.html" %}
+
+  <!-- Per page JS -->
+  {% block javascript %}
+  {% endblock javascript %}
 </body>
 
 </html>

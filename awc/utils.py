@@ -161,7 +161,6 @@ class Utils(object):
         if category == Challenge.TIMED:
             for requirement in requirements[Requirement.DEFAULT]:
                 comment = comment + Utils.create_requirement_string(requirement)
-                print(comment)
         elif category == Challenge.GENRE:
             if requirements[Requirement.EASY]:
                 comment = comment + "\n---\n__Mode: Easy__\n"

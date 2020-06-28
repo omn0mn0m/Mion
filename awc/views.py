@@ -11,6 +11,8 @@ import requests
 import json
 import os
 
+from datetime import date
+
 ANILIST_API_URL = 'https://graphql.anilist.co'
 ANILIST_AUTH_URL = 'https://anilist.co/api/v2/oauth/token'
 
@@ -63,6 +65,46 @@ def get_comment_string(challenge_info, requirements, category, request):
 
 # Create your views here.
 def index(request):
+    if request.method == "POST":
+        selected_challenges = request.POST.getlist('challenges[]')
+
+        headers = {
+            'Authorization': 'Bearer ' + request.session['access_token'],
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+        }
+
+        query = '''
+        mutation ($thread_id: Int, $comment: String) {
+          SaveThreadComment (threadId: $thread_id, comment: $comment) {
+            id,
+          }
+        }
+        '''
+        
+        for challenge_id in selected_challenges:
+            challenge = get_object_or_404(Challenge, id=int(challenge_id))
+
+            # Sets up default challenge info
+            challenge_info = {}
+            
+            challenge_info['name'] = challenge.name
+            challenge_info['start'] = date.today().strftime('%d/%m/%Y')
+            challenge_info['finish'] = 'DD/MM/YYYY'
+
+            category = challenge.category
+
+            # Generates the challenge comment
+            filled_code = get_comment_string(challenge_info, challenge.requirement_set.all(), category, request)
+
+            # Variables for the GraphQL query
+            variables = {
+                'thread_id': challenge.thread_id,
+                'comment': filled_code
+            }
+            
+            print(challenge_info)
+        
     context = {
         'genre_challenge_list': Challenge.objects.filter(category=Challenge.GENRE).order_by('name'),
         'timed_challenge_list': Challenge.objects.filter(category=Challenge.TIMED).order_by('name'),
