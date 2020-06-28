@@ -6,8 +6,7 @@ app_name = 'awc'
 
 urlpatterns = [
     path('', views.index, name='index'),
-    path('edit/<str:challenge_name>/', views.edit, {'edit': True}, name='edit'),
-    path('edit/<str:challenge_name>/new', views.edit, {'edit': False}, name='edit-new'),
+    path('edit/<str:challenge_name>/', views.edit, name='edit'),
     #path('create-submission/<str:challenge_name>/', views.create_submission, name='create-submission'),
     path('add-challenge/', views.add_challenge, name='add-challenge'),
     path('add-existing-submission/', views.add_existing_submission, name='add-existing-submission'),

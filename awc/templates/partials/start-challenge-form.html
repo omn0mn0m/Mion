@@ -1,0 +1,149 @@
+<div class="col-md p-3">
+  <h2>Start New Challenge</h2>
+  
+  {% if user.is_admin %}
+  <p>Don't see a challenge? Create a new one <a href="{% url 'awc:add-challenge' %}">here</a>.</p>
+  {% endif %}
+  
+  <form method="post">
+    {% csrf_token %}
+    
+    <button type="submit" class="btn btn-primary btn-block" id="start-selected" value="Submit">Start Selected</button>
+    <div class="accordion" id="accordionExample">
+      <div class="card">
+	<div class="card-header" id="headingOne">
+	  <h2 class="mb-0">
+            <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+	      Timed Challenges
+            </button>
+	  </h2>
+	</div>
+	
+	<div id="collapseOne" class="collapse" aria-labelledby="headingOne" data-parent="#accordionExample">
+	  <div class="card-body">
+	    {% for challenge in timed_challenge_list %}
+	    <input type="checkbox" name="challenges[]" id="{{ challenge.name }}" value="{{ challenge.id }}">
+	    <label for="{{ challenge.name }}">{{ challenge.name }}</label>
+	    {% empty %}
+	    <p>No challenges found.</p>
+	    {% endfor %}
+	  </div>
+	</div>
+      </div>
+      <div class="card">
+	<div class="card-header" id="headingTwo">
+	  <h2 class="mb-0">
+            <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+	      Genre Challenges
+            </button>
+	  </h2>
+	</div>
+	<div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionExample">
+	  <div class="card-body">
+	    {% for challenge in genre_challenge_list %}
+	    <input type="checkbox" name="challenges[]" id="{{ challenge.name }}" value="{{ challenge.id }}">
+	    <label for="{{ challenge.name }}">{{ challenge.name }}</label>
+	    {% empty %}
+	    <p>No challenges found.</p>
+	    {% endfor %}
+	  </div>
+	</div>
+      </div>
+      <div class="card">
+	<div class="card-header" id="headingThree">
+	  <h2 class="mb-0">
+            <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+	      Tier Challenges
+            </button>
+	  </h2>
+	</div>
+	<div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordionExample">
+	  <div class="card-body">
+	    {% for challenge in tier_challenge_list %}
+	    <input type="checkbox" name="challenges[]" id="{{ challenge.name }}" value="{{ challenge.id }}">
+	    <label for="{{ challenge.name }}">{{ challenge.name }}</label>
+	    {% empty %}
+	    <p>No challenges found.</p>
+	    {% endfor %}
+	  </div>
+	</div>
+      </div>
+      <div class="card">
+	<div class="card-header" id="headingFour">
+	  <h2 class="mb-0">
+            <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+	      Collection Challenges
+            </button>
+	  </h2>
+	</div>
+	<div id="collapseFour" class="collapse" aria-labelledby="headingFour" data-parent="#accordionExample">
+	  <div class="card-body">
+	    {% for challenge in collection_challenge_list %}
+	    <input type="checkbox" name="challenges[]" id="{{ challenge.name }}" value="{{ challenge.id }}">
+	    <label for="{{ challenge.name }}">{{ challenge.name }}</label>
+	    {% empty %}
+	    <p>No challenges found.</p>
+	    {% endfor %}
+	  </div>
+	</div>
+      </div>
+      <div class="card">
+	<div class="card-header" id="headingFive">
+	  <h2 class="mb-0">
+            <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
+	      Classic Challenges
+            </button>
+	  </h2>
+	</div>
+	<div id="collapseFive" class="collapse" aria-labelledby="headingFive" data-parent="#accordionExample">
+	  <div class="card-body">
+	    {% for challenge in classic_challenge_list %}
+	    <input type="checkbox" name="challenges[]" id="{{ challenge.name }}" value="{{ challenge.id }}">
+	    <label for="{{ challenge.name }}">{{ challenge.name }}</label>
+	    {% empty %}
+	    <p>No challenges found.</p>
+	    {% endfor %}
+	  </div>
+	</div>
+      </div>
+      <div class="card">
+	<div class="card-header" id="headingSix">
+	  <h2 class="mb-0">
+            <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="#collapseSix" aria-expanded="false" aria-controls="collapseSix">
+	      Puzzle Challenges
+            </button>
+	  </h2>
+	</div>
+	<div id="collapseSix" class="collapse" aria-labelledby="headingSix" data-parent="#accordionExample">
+	  <div class="card-body">
+	    {% for challenge in puzzle_challenge_list %}
+	    <input type="checkbox" name="challenges[]" id="{{ challenge.name }}" value="{{ challenge.id }}">
+	    <label for="{{ challenge.name }}">{{ challenge.name }}</label>
+	    {% empty %}
+	    <p>No challenges found.</p>
+	    {% endfor %}
+	  </div>
+	</div>
+      </div>
+      <div class="card">
+	<div class="card-header" id="headingSeven">
+	  <h2 class="mb-0">
+            <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="#collapseSeven" aria-expanded="false" aria-controls="collapseSeven">
+	      Special Challenges
+            </button>
+	  </h2>
+	</div>
+	<div id="collapseSeven" class="collapse" aria-labelledby="headingSeven" data-parent="#accordionExample">
+	  <div class="card-body">
+	    {% for challenge in special_challenge_list %}
+	    <input type="checkbox" name="challenges[]" id="{{ challenge.name }}" value="{{ challenge.id }}">
+	    <label for="{{ challenge.name }}">{{ challenge.name }}</label>
+	    {% empty %}
+	    <p>No challenges found.</p>
+	    {% endfor %}
+	  </div>
+	</div>
+      </div>
+    </div>
+  </form>  
+</div>
