@@ -14,5 +14,6 @@ urlpatterns = [
     # Functions
     path('authenticate', views.authenticate, name='authenticate'),
     path('logout', views.logout, name='logout'),
-    path('delete-submission/<int:comment_id>/', views.delete_submission, name='delete-submission'),
+    path('submit-post/<str:challenge_name>/<int:thread_id>/<int:comment_id>/', views.submit_post, name='submit-post'),
+    path('delete-post/<int:comment_id>/', views.delete_post, name='delete-post'),
 ]

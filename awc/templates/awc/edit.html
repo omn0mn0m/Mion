@@ -1,157 +1,162 @@
 {% extends "base-generic.html" %}
 
 {% block content %}
-    <h1>{{ challenge.name  }} <a href="https://anilist.co/forum/thread/{{ challenge.thread_id  }}">[Thread]</a>
+<h1>{{ challenge.name  }} <a href="https://anilist.co/forum/thread/{{ challenge.thread_id  }}">[Thread]</a>
 
-    {% if submission %}
-    <a href="https://anilist.co/forum/thread/{{ submission.thread_id  }}/comment/{{ submission.comment_id }}">[Comment]</a></h1>
+{% if submission %}
+  <a href="https://anilist.co/forum/thread/{{ submission.thread_id  }}/comment/{{ submission.comment_id }}">[Comment]</a></h1>
+{% else %}
+</h1>
+{% endif %}
+
+<p>
+  {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+
+{% if filled_code %}
+<h2>Your Challenge Code to Paste</h2>
+
+<hr>
+
+<p>
+  {{ filled_code|linebreaks }}
+</p>
+
+<hr>
+
+{% endif %}
+
+<form method="post">
+  {% csrf_token %}
+  
+  <label for="challenge-start">Challenge Start Date</label>
+  <input type="text" name="challenge-start" id="challenge-start" value={{ response.start }}>
+  
+  <label for="challenge-finish">Challenge Finish Date</label>
+  <input type="text" name="challenge-finish" id="challenge-finish" value={{ response.finish }}><br><br>
+  
+  <p>These requirements are automatically generated from a challenge code. The <a href="https://anilist.co/forum/thread/{{ challenge.thread_id  }}">full challenge post</a> should still be read through for information and reference.</p>
+  
+  {% for requirement in response.requirements %}
+  
+  {% if requirement.bonus %}
+  <h2 id="requirement-{{ requirement.number}}">Bonus Requirement {{ requirement.number }}</h2>
+  {% else %}
+  <h2 id="bonus-requirement-{{ requirement.number}}">Requirement {{ requirement.number }}</h2>
+  {% endif %}
+  
+  <p>{{ requirement.text }}</p>
+  
+  {% if requirement.bonus %}
+  <label for="completed-bonus-{{ requirement.number }}">Completed</label>
+  {% if requirement.completed %}
+  <input type="checkbox" name="completed-bonus-{{ requirement.number }}" id="completed-bonus-{{ requirement.number }}" checked>
+  {% else %}
+  <input type="checkbox" name="completed-bonus-{{ requirement.number }}" id="completed-bonus-{{ requirement.number }}">
+  {% endif %}
+  {% else %}
+  <label for="completed-{{ requirement.number }}">Completed</label>
+  {% if requirement.completed %}
+  <input type="checkbox" name="completed-{{ requirement.number }}" id="completed-{{ requirement.number }}" checked>
+  {% else %}
+  <input type="checkbox" name="completed-{{ requirement.number }}" id="completed-{{ requirement.number }}">
+  {% endif %}
+  {% endif %}
+
+  {% if requirement.mode != "D" %}
+  
+  {% if requirement.bonus %}
+  <label for="mode-bonus-{{ requirement.number }}">Difficulty Mode</label>
+  <select name="mode-bonus-{{ requirement.number }}" id="mode-bonus-{{ requirement.number }}">
     {% else %}
-    </h1>
-    {% endif %}
-
-    <p>
-      {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
-
-      {% if filled_code %}
-      <h2>Your Challenge Code to Paste</h2>
-    
-      <hr>
-      
-      <p>
-	{{ filled_code|linebreaks }}
-      </p>
-
-      <hr>
-      
+    <label for="mode-{{ requirement.number }}">Difficulty Mode</label>
+    <select name="mode-{{ requirement.number }}" id="mode-{{ requirement.number }}">
       {% endif %}
+      
+      {% if requirement.mode == "E" %}
+      <option value="E" selected>Easy</option>
+      {% else %}
+      <option value="E">Easy</option>
+      {% endif %}
+      
+      {% if requirement.mode == "N" %}
+      <option value="N" selected>Normal</option>
+      {% else %}
+      <option value="N">Normal</option>
+      {% endif %}
+      
+      {% if requirement.mode == "H" %}
+      <option value="H" selected>Hard</option>
+      {% else %}
+      <option value="H">Hard</option>
+      {% endif %}
+      
+      {% if requirement.mode == "B" %}
+      <option value="B" selected>Bonus</option>
+      {% else %}
+      <option value="B">Bonus</option>
+      {% endif %}
+    </select>
+    {% endif %}
+    
+    <br><br>
+    
+    {% if requirement.bonus %}
+    <label for="requirement-start-bonus-{{ requirement.number }}">Start Date</label>
+    <input type="text" name="requirement-start-bonus-{{ requirement.number }}" id="requirement-start-bonus-{{ requirement.number }}" value={{ requirement.start }}>
+    
+    <label for="requirement-finish-bonus-{{ requirement.number }}">Finish Date</label>
+    <input type="text" name="requirement-finish-bonus-{{ requirement.number }}" id="requirement-finish-bonus-{{ requirement.number }}" value={{ requirement.finish }}><br><br>
+    
+    <label for="requirement-anime-bonus-{{ requirement.number }}">Anime</label>
+    <input type="text" name="requirement-anime-bonus-{{ requirement.number }}" id="requirement-anime-bonus-{{ requirement.number }}" value="{{ requirement.anime }}">
+    
+    <label for="requirement-link-bonus-{{ requirement.number }}">Link</label>
+    <input type="text" name="requirement-link-bonus-{{ requirement.number }}" id="requirement-link-bonus-{{ requirement.number }}" value="{{ requirement.link }}"><br><br>
+    
+    {% if requirement.extra %}
+    <label for="requirement-extra-bonus-{{ requirement.number }}">Extra</label>
+    <input type="text" name="requirement-extra-bonus-{{ requirement.number }}" id="requirement-extra-bonus-{{ requirement.number }}" value="{{ requirement.extra }}" size=100>
+    
+    <br><br>
+    {% endif %}
+    {% else %}
+    <label for="requirement-start-{{ requirement.number }}">Start Date</label>
+    <input type="text" name="requirement-start-{{ requirement.number }}" id="requirement-start-{{ requirement.number }}" value={{ requirement.start }}>
+    
+    <label for="requirement-finish-{{ requirement.number }}">Finish Date</label>
+    <input type="text" name="requirement-finish-{{ requirement.number }}" id="requirement-finish-{{ requirement.number }}" value={{ requirement.finish }}><br><br>
 
-      <form method="post">
-	{% csrf_token %}
+    <label for="requirement-anime-{{ requirement.number }}">Anime</label>
+    <input type="text" name="requirement-anime-{{ requirement.number }}" id="requirement-anime-{{ requirement.number }}" value="{{ requirement.anime }}">
+    
+    <label for="requirement-link-{{ requirement.number }}">Link</label>
+    <input type="text" name="requirement-link-{{ requirement.number }}" id="requirement-link-{{ requirement.number }}" value="{{ requirement.link }}"><br><br>
+    
+    {% if requirement.extra %}
+    <label for="requirement-extra-{{ requirement.number }}">Extra</label>
+    <input type="text" name="requirement-extra-{{ requirement.number }}" id="requirement-extra-{{ requirement.number }}" value="{{ requirement.extra }}" size=100>
+    {% endif %}
+    {% endif %}
+    
+    {% endfor %}
+    
+    <br><br>
+    
+    <p>These requirements are automatically generated from a challenge code. The <a href="https://anilist.co/forum/thread/{{ challenge.thread_id  }}">full challenge post</a> should still be read through for information and reference.</p>
+    
+    <input class="btn btn-primary" type="submit" value="Update Challenge">
+</form>
+</p>
 
-	<label for="challenge-start">Challenge Start Date</label>
-	<input type="text" name="challenge-start" id="challenge-start" value={{ response.start }}>
+<p>
+  <form action="{% url 'awc:submit-post' challenge.name submission.thread_id submission.comment_id %}" method='GET'>
+    <input class="btn btn-primary" type="submit" onclick="return confirm('Are you sure you want to submit?')" value="Submit">
+  </form>
+</p>
 
-	<label for="challenge-finish">Challenge Finish Date</label>
-	<input type="text" name="challenge-finish" id="challenge-finish" value={{ response.finish }}><br><br>
-
-	<p>These requirements are automatically generated from a challenge code. The <a href="https://anilist.co/forum/thread/{{ challenge.thread_id  }}">full challenge post</a> should still be read through for information and reference.</p>
-
-	{% for requirement in response.requirements %}
-
-	{% if requirement.bonus %}
-	<h2 id="requirement-{{ requirement.number}}">Bonus Requirement {{ requirement.number }}</h2>
-	{% else %}
-	<h2 id="bonus-requirement-{{ requirement.number}}">Requirement {{ requirement.number }}</h2>
-	{% endif %}
-
-	<p>{{ requirement.text }}</p>
-
-	{% if requirement.bonus %}
-	<label for="completed-bonus-{{ requirement.number }}">Completed</label>
-	{% if requirement.completed %}
-	<input type="checkbox" name="completed-bonus-{{ requirement.number }}" id="completed-bonus-{{ requirement.number }}" checked>
-	{% else %}
-	<input type="checkbox" name="completed-bonus-{{ requirement.number }}" id="completed-bonus-{{ requirement.number }}">
-	{% endif %}
-	{% else %}
-	<label for="completed-{{ requirement.number }}">Completed</label>
-	{% if requirement.completed %}
-	<input type="checkbox" name="completed-{{ requirement.number }}" id="completed-{{ requirement.number }}" checked>
-	{% else %}
-	<input type="checkbox" name="completed-{{ requirement.number }}" id="completed-{{ requirement.number }}">
-	{% endif %}
-	{% endif %}
-
-	{% if requirement.mode != "D" %}
-	
-	{% if requirement.bonus %}
-	<label for="mode-bonus-{{ requirement.number }}">Difficulty Mode</label>
-	<select name="mode-bonus-{{ requirement.number }}" id="mode-bonus-{{ requirement.number }}">
-	{% else %}
-	<label for="mode-{{ requirement.number }}">Difficulty Mode</label>
-	<select name="mode-{{ requirement.number }}" id="mode-{{ requirement.number }}">
-	{% endif %}
-	    
-	  {% if requirement.mode == "E" %}
-	  <option value="E" selected>Easy</option>
-	  {% else %}
-	  <option value="E">Easy</option>
-	  {% endif %}
-
-	  {% if requirement.mode == "N" %}
-	  <option value="N" selected>Normal</option>
-	  {% else %}
-	  <option value="N">Normal</option>
-	  {% endif %}
-
-	  {% if requirement.mode == "H" %}
-	  <option value="H" selected>Hard</option>
-	  {% else %}
-	  <option value="H">Hard</option>
-	  {% endif %}
-
-	  {% if requirement.mode == "B" %}
-	  <option value="B" selected>Bonus</option>
-	  {% else %}
-	  <option value="B">Bonus</option>
-	  {% endif %}
-	</select>
-	{% endif %}
-
-	<br><br>
-
-	{% if requirement.bonus %}
-	<label for="requirement-start-bonus-{{ requirement.number }}">Start Date</label>
-	<input type="text" name="requirement-start-bonus-{{ requirement.number }}" id="requirement-start-bonus-{{ requirement.number }}" value={{ requirement.start }}>
-
-	<label for="requirement-finish-bonus-{{ requirement.number }}">Finish Date</label>
-	<input type="text" name="requirement-finish-bonus-{{ requirement.number }}" id="requirement-finish-bonus-{{ requirement.number }}" value={{ requirement.finish }}><br><br>
-
-	<label for="requirement-anime-bonus-{{ requirement.number }}">Anime</label>
-	<input type="text" name="requirement-anime-bonus-{{ requirement.number }}" id="requirement-anime-bonus-{{ requirement.number }}" value="{{ requirement.anime }}">
-
-	<label for="requirement-link-bonus-{{ requirement.number }}">Link</label>
-	<input type="text" name="requirement-link-bonus-{{ requirement.number }}" id="requirement-link-bonus-{{ requirement.number }}" value="{{ requirement.link }}"><br><br>
-
-	{% if requirement.extra %}
-	<label for="requirement-extra-bonus-{{ requirement.number }}">Extra</label>
-	<input type="text" name="requirement-extra-bonus-{{ requirement.number }}" id="requirement-extra-bonus-{{ requirement.number }}" value="{{ requirement.extra }}" size=100>
-
-	<br><br>
-	{% endif %}
-	{% else %}
-	<label for="requirement-start-{{ requirement.number }}">Start Date</label>
-	<input type="text" name="requirement-start-{{ requirement.number }}" id="requirement-start-{{ requirement.number }}" value={{ requirement.start }}>
-
-	<label for="requirement-finish-{{ requirement.number }}">Finish Date</label>
-	<input type="text" name="requirement-finish-{{ requirement.number }}" id="requirement-finish-{{ requirement.number }}" value={{ requirement.finish }}><br><br>
-
-	<label for="requirement-anime-{{ requirement.number }}">Anime</label>
-	<input type="text" name="requirement-anime-{{ requirement.number }}" id="requirement-anime-{{ requirement.number }}" value="{{ requirement.anime }}">
-
-	<label for="requirement-link-{{ requirement.number }}">Link</label>
-	<input type="text" name="requirement-link-{{ requirement.number }}" id="requirement-link-{{ requirement.number }}" value="{{ requirement.link }}"><br><br>
-
-	{% if requirement.extra %}
-	<label for="requirement-extra-{{ requirement.number }}">Extra</label>
-	<input type="text" name="requirement-extra-{{ requirement.number }}" id="requirement-extra-{{ requirement.number }}" value="{{ requirement.extra }}" size=100>
-	{% endif %}
-	{% endif %}
-
-	{% endfor %}
-
-	<br><br>
-
-	<p>These requirements are automatically generated from a challenge code. The <a href="https://anilist.co/forum/thread/{{ challenge.thread_id  }}">full challenge post</a> should still be read through for information and reference.</p>
-	
-	<input class="btn btn-primary" type="submit" value="Update Challenge">
-      </form>
-
-    </p>
-
-    <p>
-      <form id="formDelete" action="{% url 'awc:delete-submission' submission.comment_id %}" method='GET'>
-	<input class="btn btn-warning" type="submit" onclick="return confirm('Are you sure you want to delete?')" value="Delete">
-      </form>
-    </p>
+<p>
+  <form action="{% url 'awc:delete-post' submission.comment_id %}" method='GET'>
+    <input class="btn btn-danger" type="submit" onclick="return confirm('Are you sure you want to delete?')" value="Delete">
+  </form>
+</p>
 {% endblock %}

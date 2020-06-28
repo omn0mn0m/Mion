@@ -331,7 +331,35 @@ def logout(request):
 
     return HttpResponseRedirect(reverse('awc:index'))
 
-def delete_submission(request, comment_id):
+def submit_post(request, challenge_name, thread_id, comment_id):
+    headers = {
+        'Authorization': 'Bearer ' + request.session['access_token'],
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+    }
+
+    query = '''
+    mutation ($thread_id: Int, $comment: String) {
+      SaveThreadComment (threadId: $thread_id, comment: $comment) {
+        id,
+      }
+    }
+    '''
+
+    # Variables for the GraphQL query
+    variables = {
+        'thread_id': 4446,
+        'comment': "{}: https://anilist.co/forum/thread/{}/comment/{}".format(challenge_name,
+                                                                              thread_id,
+                                                                              comment_id),
+    }
+    
+    # Make the HTTP Api request
+    response = requests.post(ANILIST_API_URL, json={'query': query, 'variables': variables}, headers=headers)
+
+    return HttpResponseRedirect(reverse('awc:index'))
+
+def delete_post(request, comment_id):
     headers = {
         'Authorization': 'Bearer ' + request.session['access_token'],
         'Content-Type': 'application/json',
