@@ -143,21 +143,15 @@
 	<br><br>
 
 	<p>These requirements are automatically generated from a challenge code. The <a href="https://anilist.co/forum/thread/{{ challenge.thread_id  }}">full challenge post</a> should still be read through for information and reference.</p>
-
-	{% if edit %}
-	<input type="submit" value="Update Challenge">
-	{% else %}
-	<input type="submit" value="Create Challenge">
-	{% endif %}
+	
+	<input class="btn btn-primary" type="submit" value="Update Challenge">
       </form>
 
     </p>
 
-    {% if edit %}
     <p>
-      <form action="{% url 'awc:delete-submission' submission.comment_id %}" method='GET'>
-	<button type='submit'>Delete</button>
+      <form id="formDelete" action="{% url 'awc:delete-submission' submission.comment_id %}" method='GET'>
+	<input class="btn btn-warning" type="submit" onclick="return confirm('Are you sure you want to delete?')" value="Delete">
       </form>
     </p>
-    {% endif %}
 {% endblock %}

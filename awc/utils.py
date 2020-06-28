@@ -152,40 +152,79 @@ class Utils(object):
         return parsed_comment
 
     @staticmethod
-    def create_comment_string(challenge_info, requirements, category):
+    def create_comment_string(challenge_info, requirements, category, request):
+        reqs = []
+
+        for requirement in requirements:
+            req = {}
+
+            req['number'] = requirement.number
+            req['text'] = requirement.text
+            req['extra_newline'] = requirement.extra_newline
+            req['bonus'] = requirement.bonus
+
+            if requirement.bonus:
+                req['mode'] = request.POST.get('mode-bonus-{}'.format(requirement.number), 'D').strip()
+
+                if request.POST.get('completed-bonus-{}'.format(requirement.number), "off") == 'on':
+                    req['completed'] = 'X'
+                else:
+                    req['completed'] = 'O'
+
+                req['start'] = request.POST.get('requirement-start-bonus-{}'.format(requirement.number), "DD/MM/YYYY").strip()
+                req['finish'] = request.POST.get('requirement-finish-bonus-{}'.format(requirement.number), "DD/MM/YYYY").strip()
+                req['anime'] = request.POST.get('requirement-anime-bonus-{}'.format(requirement.number), "Anime Title").strip()
+                req['link'] = request.POST.get('requirement-link-bonus-{}'.format(requirement.number), "https://anilist.co/anime/00000/").strip()
+                req['extra'] = request.POST.get('requirement-extra-bonus-{}'.format(requirement.number), "").strip()
+            else:
+                req['mode'] = request.POST.get('mode-{}'.format(requirement.number), 'D').strip()
+
+                if request.POST.get('completed-{}'.format(requirement.number), "off") == 'on':
+                    req['completed'] = 'X'
+                else:
+                    req['completed'] = 'O'
+
+                req['start'] = request.POST.get('requirement-start-{}'.format(requirement.number), "DD/MM/YYYY").strip()
+                req['finish'] = request.POST.get('requirement-finish-{}'.format(requirement.number), "DD/MM/YYYY").strip()
+                req['anime'] = request.POST.get('requirement-anime-{}'.format(requirement.number), "Anime Title").strip()
+                req['link'] = request.POST.get('requirement-link-{}'.format(requirement.number), "https://anilist.co/anime/00000/").strip()
+                req['extra'] = request.POST.get('requirement-extra-{}'.format(requirement.number), requirement.extra).strip()
+
+            reqs.append(req)
+        
         comment = "# __{name}__\n\nChallenge Start Date: {start}\nChallenge Finish Date: {finish}\nLegend: [X] = Completed [O] = Not Completed\n\n"
         comment = comment.format(**challenge_info)
 
-        requirements = Utils.split_by_mode(requirements, 'mode')
+        reqs = Utils.split_by_mode(reqs, 'mode')
 
         if category == Challenge.TIMED:
-            for requirement in requirements[Requirement.DEFAULT]:
+            for requirement in reqs[Requirement.DEFAULT]:
                 comment = comment + Utils.create_requirement_string(requirement)
         elif category == Challenge.GENRE:
-            if requirements[Requirement.EASY]:
+            if reqs[Requirement.EASY]:
                 comment = comment + "\n---\n__Mode: Easy__\n"
                 
-                for requirement in sorted(requirements[Requirement.EASY], key=itemgetter('number')):
+                for requirement in sorted(reqs[Requirement.EASY], key=itemgetter('number')):
                     comment = comment + Utils.create_requirement_string(requirement)
-            if requirements[Requirement.NORMAL]:
+            if reqs[Requirement.NORMAL]:
                 comment = comment + "\n---\n__Mode: Normal__\n"
 
-                for requirement in sorted(requirements[Requirement.NORMAL], key=itemgetter('number')):
+                for requirement in sorted(reqs[Requirement.NORMAL], key=itemgetter('number')):
                     comment = comment + Utils.create_requirement_string(requirement)
-            if requirements[Requirement.HARD]:
+            if reqs[Requirement.HARD]:
                 comment = comment + "\n---\n__Mode: Hard__\n"
 
-                for requirement in sorted(requirements[Requirement.HARD], key=itemgetter('number')):
+                for requirement in sorted(reqs[Requirement.HARD], key=itemgetter('number')):
                     comment = comment + Utils.create_requirement_string(requirement)
-            if requirements[Requirement.BONUS]:
+            if reqs[Requirement.BONUS]:
                 comment = comment + "\n---\n__Bonus__\n"
 
-                for requirement in sorted(requirements[Requirement.BONUS], key=itemgetter('number')):
+                for requirement in sorted(reqs[Requirement.BONUS], key=itemgetter('number')):
                     comment = comment + 'B' + Utils.create_requirement_string(requirement)
-            if requirements[Requirement.DEFAULT]:
+            if reqs[Requirement.DEFAULT]:
                 comment = comment + "\n---\n__Misc__\n"
 
-                for requirement in sorted(requirements[Requirement.DEFAULT], key=itemgetter('number')):
+                for requirement in sorted(reqs[Requirement.DEFAULT], key=itemgetter('number')):
                     comment = comment + Utils.create_requirement_string(requirement)
         else:
             print("Not implemented...")
