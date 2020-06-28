@@ -12,19 +12,6 @@
 <p>
   {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
 
-{% if filled_code %}
-<h2>Your Challenge Code to Paste</h2>
-
-<hr>
-
-<p>
-  {{ filled_code|linebreaks }}
-</p>
-
-<hr>
-
-{% endif %}
-
 <form method="post">
   {% csrf_token %}
   
@@ -56,9 +43,9 @@
   {% else %}
   <label for="completed-{{ requirement.number }}">Completed</label>
   {% if requirement.completed %}
-  <input type="checkbox" name="completed-{{ requirement.number }}" id="completed-{{ requirement.number }}" checked>
+  <input type="checkbox" name="completed-{{ requirement.number }}" id="completed[]" checked>
   {% else %}
-  <input type="checkbox" name="completed-{{ requirement.number }}" id="completed-{{ requirement.number }}">
+  <input type="checkbox" name="completed-{{ requirement.number }}" id="completed[]">
   {% endif %}
   {% endif %}
 
@@ -149,7 +136,7 @@
 </p>
 
 <p>
-  <form action="{% url 'awc:submit-post' challenge.name submission.thread_id submission.comment_id %}" method='GET'>
+  <form name="submit-post" onsubmit="return checkCompleted()" action="{% url 'awc:submit-post' challenge.name submission.thread_id submission.comment_id %}" method='GET'>
     <input class="btn btn-primary" type="submit" onclick="return confirm('Are you sure you want to submit?')" value="Submit">
   </form>
 </p>
@@ -159,4 +146,25 @@
     <input class="btn btn-danger" type="submit" onclick="return confirm('Are you sure you want to delete?')" value="Delete">
   </form>
 </p>
+
+<p id="errors" class="text-danger"></p>
+{% endblock %}
+
+{% block javascript %}
+<script>
+
+  function checkCompleted() {
+      var $checkboxes = $('input[id="completed[]"]');
+
+      for (const status of $checkboxes) {
+	  if (status.checked == false) {
+	      document.getElementById('errors').innerHTML = "Please complete all requirements before submitting..."
+	      return false;
+	  }
+      }
+
+      return true;
+  }
+  
+</script>
 {% endblock %}

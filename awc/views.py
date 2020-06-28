@@ -105,41 +105,7 @@ def edit(request, challenge_name):
     requirements = challenge.requirement_set.all().order_by("bonus", "number")
 
     context = {}
-
-    context['anilist_redirect_uri'] = anilist_redirect_uri
-    context['anilist_client_id'] = anilist_client_id
-
-    query = '''
-    query ($thread_id: Int, $comment_id: Int) {
-      ThreadComment (threadId: $thread_id, id: $comment_id) {
-        comment,
-        threadId,
-        id
-      }
-    }
-    '''
-
-    # Define our query variables and values that will be used in the query request
-    variables = {
-        'thread_id': submission.thread_id,
-        'comment_id': submission.comment_id
-    }
-
-    # Make the HTTP Api request
-    response = requests.post(ANILIST_API_URL, json={'query': query, 'variables': variables})
-
-    parsed_response = Utils.parse_challenge_code(submission, response.text)
-
-    context = {
-        'submission': submission,
-        'response': parsed_response,
-        'category': challenge.category,
-    }
     
-    context['challenge'] = challenge
-    context['requirements'] = requirements
-    context['edit'] = edit 
-
     if request.POST:
         try:
             challenge_info = {}
@@ -151,8 +117,6 @@ def edit(request, challenge_name):
             category = challenge.category
 
             filled_code = Utils.create_comment_string(challenge_info, challenge.requirement_set.all(), category, request)
-            
-            context['filled_code'] = filled_code
 
             headers = {
                 'Authorization': 'Bearer ' + request.session['access_token'],
@@ -180,6 +144,35 @@ def edit(request, challenge_name):
             return render(request, 'awc/edit.html', context)
         except Exception as err:
             print("Error: {}".format(err))
+
+    query = '''
+    query ($thread_id: Int, $comment_id: Int) {
+      ThreadComment (threadId: $thread_id, id: $comment_id) {
+        comment,
+        threadId,
+        id
+      }
+    }
+    '''
+
+    # Define our query variables and values that will be used in the query request
+    variables = {
+        'thread_id': submission.thread_id,
+        'comment_id': submission.comment_id
+    }
+
+    # Make the HTTP Api request
+    response = requests.post(ANILIST_API_URL, json={'query': query, 'variables': variables})
+
+    parsed_response = Utils.parse_challenge_code(submission, response.text)
+
+    context['submission'] = submission
+    context['response'] = parsed_response
+    context['category'] = challenge.category
+    context['anilist_redirect_uri'] = anilist_redirect_uri
+    context['anilist_client_id'] = anilist_client_id
+    context['challenge'] = challenge
+    context['requirements'] = requirements
 
     if 'user' in request.session:
         try:
