@@ -39,7 +39,12 @@
       
       $checkboxes.change(function(){
           var countCheckedCheckboxes = $checkboxes.filter(':checked').length;
-          $('#start-selected').text("Start Selected: " + countCheckedCheckboxes);
+
+	  if (countCheckedCheckboxes != 0) {
+              $('#start-selected').text("Start Selected: " + countCheckedCheckboxes);
+	  } else {
+	      $('#start-selected').text("Start Selected");
+	  }
       });
       
   });
