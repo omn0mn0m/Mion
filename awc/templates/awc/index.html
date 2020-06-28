@@ -30,3 +30,19 @@
 </div>
 {% endblock %}
     
+
+{% block javascript %}
+<script>
+
+  $(document).ready(function(){
+      var $checkboxes = $('input[name="challenges[]"]');
+      
+      $checkboxes.change(function(){
+          var countCheckedCheckboxes = $checkboxes.filter(':checked').length;
+          $('#start-selected').text("Start Selected: " + countCheckedCheckboxes);
+      });
+      
+  });
+  
+</script>
+{% endblock %}
