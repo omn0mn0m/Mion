@@ -11,9 +11,17 @@
   <div class="col-md p-3">
     <h2>Edit Your Challenges</h2>
     {% if user.name %}
-    <a class="btn btn-primary btn-block" href=''>Scan</a>
-    <a class="btn btn-primary btn-block" href="{% url 'awc:add-existing-submission' %}">Add</a><br><br>
-    
+    <div class="row">
+      <div class="col-md pb-1">
+	<a class="btn btn-primary btn-block" href=''>Scan</a>
+      </div>
+      <div class="col-md pb-1">
+	<a class="btn btn-primary btn-block" href="{% url 'awc:add-existing-submission' %}">Add</a>
+      </div>
+      <div class="col-md pb-1">
+	<a class="btn btn-primary btn-block" href="{% url 'awc:profile-code' %}">Profile Code</a>
+      </div>
+    </div>
     <ul>
       {% for submission in user.submission_set.all %}
       <li><a href="{% url 'awc:edit' submission.challenge %}">{{ submission.challenge }}</a></li>

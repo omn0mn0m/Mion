@@ -1,0 +1,24 @@
+{% extends "base-generic.html" %}
+
+{% block content %}
+
+<div class="row p-3 bg-primary text-light">
+  <h2>Profile Code</h2>
+</div>
+
+<p class="pt-3">
+  Paste this code anywhere in your bio to link to your challenges:
+</p>
+
+<hr>
+
+{% if code %}
+<code>
+  {{ code|linebreaks }}
+</code>
+{% else %}
+<p>Whoops, something went wrong...</p>
+{% endif %}
+
+  
+{% endblock %}

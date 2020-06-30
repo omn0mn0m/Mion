@@ -254,6 +254,47 @@ def add_challenge(request):
     
     return render(request, 'awc/add-challenge.html', context)
 
+def profile_code(request):
+    user = User.objects.get(name=request.session['user']['name'])
+    posts = user.submission_set.all()
+
+    current_posts = []
+    past_posts = []
+
+    for post in posts:
+        if post.submission_comment_id == None:
+            current_posts.append(post)
+        else:
+            past_posts.append(post)
+    
+    code = ""
+
+    if current_posts:
+        code += "__Current__\n\n"
+        
+        for post in current_posts:
+            code += "[{}](https://anilist.co/thread/{}/comment/{}) | ".format(post.challenge.name,
+                                                                              post.challenge.thread_id,
+                                                                              post.comment_id)
+
+        code = code[:-2]
+
+    if past_posts:
+        code += "\n\n__Past__\n\n"
+        
+        for post in past_posts:
+            code += "[{}](https://anilist.co/thread/{}/comment/{}) | ".format(post.challenge.name,
+                                                                              post.challenge.thread_id,
+                                                                              post.comment_id)
+            
+        code = code[:-2]
+    
+    context = {
+        'code': code,
+    }
+
+    return render(request, 'awc/profile-code.html', context)
+
 def authenticate(request):
     authorisation_code = request.GET.get('code', '')
 
@@ -349,10 +390,15 @@ def submit_post(request, challenge_name, thread_id, comment_id):
     
     # Make the HTTP Api request
     response = requests.post(ANILIST_API_URL, json={'query': query, 'variables': variables}, headers=headers)
+    response_data = json.loads(response.text)
+    
+    submission = get_object_or_404(Submission, user__name=request.session['user']['name'], challenge__name=challenge_name)
+    submission.submission_comment_id = response_data['data']['SaveThreadComment']['id']
+    submission.save()
 
     return HttpResponseRedirect(reverse('awc:index'))
 
-def delete_post(request, comment_id):
+def delete_post(request, comment_id, is_submission=False):
     headers = {
         'Authorization': 'Bearer ' + request.session['access_token'],
         'Content-Type': 'application/json',
@@ -376,7 +422,13 @@ def delete_post(request, comment_id):
     
     response_data = json.loads(response.text)
 
-    if response_data['data']['DeleteThreadComment']['deleted']:
-        Submission.objects.get(comment_id=comment_id).delete()
     
+    if response_data['data']['DeleteThreadComment']['deleted']:
+        if is_submission:
+            submission = Submission.objects.get(submission_comment_id=comment_id)
+            submission.submission_comment_id = None
+            submission.save()
+        else:
+            Submission.objects.get(comment_id=comment_id).delete()
+            
     return HttpResponseRedirect(reverse('awc:index'))

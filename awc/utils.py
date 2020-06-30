@@ -14,14 +14,14 @@ class Utils(object):
     MODE_HARD = "__Mode: Hard__"
 
     @staticmethod
-    def split_by_mode(dict_list, key):
+    def split_by_key(dict_list, key):
         result = collections.defaultdict(list)
 
         for item in dict_list:
             result[item[key]].append(item)
 
         return result
-
+    
     @staticmethod
     def create_requirement_string(requirement):
         requirement_string = "{number}) [{completed}] Start: {start} Finish: {finish} __{text}__ [{anime}]({link})".format(
@@ -195,7 +195,7 @@ class Utils(object):
         comment = "# __{name}__\n\nChallenge Start Date: {start}\nChallenge Finish Date: {finish}\nLegend: [X] = Completed [O] = Not Completed\n\n"
         comment = comment.format(**challenge_info)
 
-        reqs = Utils.split_by_mode(reqs, 'mode')
+        reqs = Utils.split_by_key(reqs, 'mode')
 
         if category == Challenge.TIMED:
             for requirement in reqs[Requirement.DEFAULT]:

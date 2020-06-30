@@ -80,5 +80,7 @@ class Submission(models.Model):
     thread_id = models.IntegerField()
     comment_id = models.IntegerField()
 
+    submission_comment_id = models.IntegerField(blank=True, null=True)
+
     def __str__(self):
         return "{} Submission".format(self.challenge)
