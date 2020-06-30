@@ -164,7 +164,7 @@ class Utils(object):
             req['bonus'] = requirement.bonus
 
             if requirement.bonus:
-                req['mode'] = request.POST.get('mode-bonus-{}'.format(requirement.number), 'D').strip()
+                req['mode'] = request.POST.get('mode-bonus-{}'.format(requirement.number), requirement.mode).strip()
 
                 if request.POST.get('completed-bonus-{}'.format(requirement.number), "off") == 'on':
                     req['completed'] = 'X'
@@ -175,9 +175,9 @@ class Utils(object):
                 req['finish'] = request.POST.get('requirement-finish-bonus-{}'.format(requirement.number), "DD/MM/YYYY").strip()
                 req['anime'] = request.POST.get('requirement-anime-bonus-{}'.format(requirement.number), "Anime Title").strip()
                 req['link'] = request.POST.get('requirement-link-bonus-{}'.format(requirement.number), "https://anilist.co/anime/00000/").strip()
-                req['extra'] = request.POST.get('requirement-extra-bonus-{}'.format(requirement.number), "").strip()
+                req['extra'] = request.POST.get('requirement-extra-bonus-{}'.format(requirement.number), requirement.extra).strip()
             else:
-                req['mode'] = request.POST.get('mode-{}'.format(requirement.number), 'D').strip()
+                req['mode'] = request.POST.get('mode-{}'.format(requirement.number), requirement.mode).strip()
 
                 if request.POST.get('completed-{}'.format(requirement.number), "off") == 'on':
                     req['completed'] = 'X'

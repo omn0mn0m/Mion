@@ -42,39 +42,37 @@ def index(request):
         '''
         
         for challenge_id in selected_challenges:
-            challenge = get_object_or_404(Challenge, id=int(challenge_id))
+            if not Submission.objects.filter(user__name=request.session['user']['name'], challenge__id=challenge_id).exists():
+                challenge = get_object_or_404(Challenge, id=int(challenge_id))
 
-            # Sets up default challenge info
-            challenge_info = {}
-            
-            challenge_info['name'] = challenge.name
-            challenge_info['start'] = date.today().strftime('%d/%m/%Y')
-            challenge_info['finish'] = 'DD/MM/YYYY'
+                # Sets up default challenge info
+                challenge_info = {}
 
-            category = challenge.category
+                challenge_info['name'] = challenge.name
+                challenge_info['start'] = date.today().strftime('%d/%m/%Y')
+                challenge_info['finish'] = 'DD/MM/YYYY'
 
-            for requirement in challenge.requirement_set.all():
-                pass
+                category = challenge.category
 
-            # Generates the challenge comment
-            filled_code = Utils.create_comment_string(challenge_info, challenge.requirement_set.all(), category, request)
+                # Generates the challenge comment
+                filled_code = Utils.create_comment_string(challenge_info, challenge.requirement_set.all(), category, request)
 
-            # Variables for the GraphQL query
-            variables = {
-                'thread_id': challenge.thread_id,
-                'comment': filled_code
-            }
+                # Variables for the GraphQL query
+                variables = {
+                    'thread_id': challenge.thread_id,
+                    'comment': filled_code
+                }
 
-            # Make the HTTP Api request
-            response = requests.post(ANILIST_API_URL, json={'query': query, 'variables': variables}, headers=headers)
+                # Make the HTTP Api request
+                response = requests.post(ANILIST_API_URL, json={'query': query, 'variables': variables}, headers=headers)
 
-            response_data = json.loads(response.text)
-            context['comment_id'] = response_data['data']['SaveThreadComment']['id']
-                
-            submission = Submission(user=User.objects.get(name=request.session['user']['name']),
-                                    challenge=challenge,
-                                    thread_id=challenge.thread_id,
-                                    comment_id=context['comment_id']).save()
+                response_data = json.loads(response.text)
+                context['comment_id'] = response_data['data']['SaveThreadComment']['id']
+
+                submission = Submission(user=User.objects.get(name=request.session['user']['name']),
+                                        challenge=challenge,
+                                        thread_id=challenge.thread_id,
+                                        comment_id=context['comment_id']).save()
             
     context['genre_challenge_list'] = Challenge.objects.filter(category=Challenge.GENRE).order_by('name')
     context['timed_challenge_list'] = Challenge.objects.filter(category=Challenge.TIMED).order_by('name')

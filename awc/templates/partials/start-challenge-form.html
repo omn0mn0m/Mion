@@ -22,8 +22,8 @@
 	<div id="collapseOne" class="collapse" aria-labelledby="headingOne" data-parent="#accordionExample">
 	  <div class="card-body">
 	    {% for challenge in timed_challenge_list %}
-	    <input type="checkbox" name="challenges[]" id="{{ challenge.name }}" value="{{ challenge.id }}"><br>
-	    <label for="{{ challenge.name }}">{{ challenge.name }}</label>
+	    <input type="checkbox" name="challenges[]" id="{{ challenge.name }}" value="{{ challenge.id }}">
+	    <label for="{{ challenge.name }}">{{ challenge.name }}</label><br>
 	    {% empty %}
 	    <p>No challenges found.</p>
 	    {% endfor %}
@@ -41,8 +41,8 @@
 	<div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionExample">
 	  <div class="card-body">
 	    {% for challenge in genre_challenge_list %}
-	    <input type="checkbox" name="challenges[]" id="{{ challenge.name }}" value="{{ challenge.id }}"><br>
-	    <label for="{{ challenge.name }}">{{ challenge.name }}</label>
+	    <input type="checkbox" name="challenges[]" id="{{ challenge.name }}" value="{{ challenge.id }}">
+	    <label for="{{ challenge.name }}">{{ challenge.name }}</label><br>
 	    {% empty %}
 	    <p>No challenges found.</p>
 	    {% endfor %}
@@ -60,8 +60,8 @@
 	<div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordionExample">
 	  <div class="card-body">
 	    {% for challenge in tier_challenge_list %}
-	    <input type="checkbox" name="challenges[]" id="{{ challenge.name }}" value="{{ challenge.id }}"><br>
-	    <label for="{{ challenge.name }}">{{ challenge.name }}</label>
+	    <input type="checkbox" name="challenges[]" id="{{ challenge.name }}" value="{{ challenge.id }}">
+	    <label for="{{ challenge.name }}">{{ challenge.name }}</label><br>
 	    {% empty %}
 	    <p>No challenges found.</p>
 	    {% endfor %}
@@ -79,8 +79,8 @@
 	<div id="collapseFour" class="collapse" aria-labelledby="headingFour" data-parent="#accordionExample">
 	  <div class="card-body">
 	    {% for challenge in collection_challenge_list %}
-	    <input type="checkbox" name="challenges[]" id="{{ challenge.name }}" value="{{ challenge.id }}"><br>
-	    <label for="{{ challenge.name }}">{{ challenge.name }}</label>
+	    <input type="checkbox" name="challenges[]" id="{{ challenge.name }}" value="{{ challenge.id }}">
+	    <label for="{{ challenge.name }}">{{ challenge.name }}</label><br>
 	    {% empty %}
 	    <p>No challenges found.</p>
 	    {% endfor %}
@@ -98,8 +98,8 @@
 	<div id="collapseFive" class="collapse" aria-labelledby="headingFive" data-parent="#accordionExample">
 	  <div class="card-body">
 	    {% for challenge in classic_challenge_list %}
-	    <input type="checkbox" name="challenges[]" id="{{ challenge.name }}" value="{{ challenge.id }}"><br>
-	    <label for="{{ challenge.name }}">{{ challenge.name }}</label>
+	    <input type="checkbox" name="challenges[]" id="{{ challenge.name }}" value="{{ challenge.id }}">
+	    <label for="{{ challenge.name }}">{{ challenge.name }}</label><br>
 	    {% empty %}
 	    <p>No challenges found.</p>
 	    {% endfor %}
@@ -117,8 +117,8 @@
 	<div id="collapseSix" class="collapse" aria-labelledby="headingSix" data-parent="#accordionExample">
 	  <div class="card-body">
 	    {% for challenge in puzzle_challenge_list %}
-	    <input type="checkbox" name="challenges[]" id="{{ challenge.name }}" value="{{ challenge.id }}"><br>
-	    <label for="{{ challenge.name }}">{{ challenge.name }}</label>
+	    <input type="checkbox" name="challenges[]" id="{{ challenge.name }}" value="{{ challenge.id }}">
+	    <label for="{{ challenge.name }}">{{ challenge.name }}</label><br>
 	    {% empty %}
 	    <p>No challenges found.</p>
 	    {% endfor %}
@@ -136,8 +136,8 @@
 	<div id="collapseSeven" class="collapse" aria-labelledby="headingSeven" data-parent="#accordionExample">
 	  <div class="card-body">
 	    {% for challenge in special_challenge_list %}
-	    <input type="checkbox" name="challenges[]" id="{{ challenge.name }}" value="{{ challenge.id }}"><br>
-	    <label for="{{ challenge.name }}">{{ challenge.name }}</label>
+	    <input type="checkbox" name="challenges[]" id="{{ challenge.name }}" value="{{ challenge.id }}">
+	    <label for="{{ challenge.name }}">{{ challenge.name }}</label><br>
 	    {% empty %}
 	    <p>No challenges found.</p>
 	    {% endfor %}
