@@ -147,3 +147,30 @@
     </div>
   </form>  
 </div>
+
+<script>
+
+  $(document).ready(function(){
+      var $checkboxes = $('input[name="challenges[]"]');
+      
+      $checkboxes.change(function(){
+          var countCheckedCheckboxes = $checkboxes.filter(':checked').length;
+
+	  var max_checks = 4;
+
+	  if (countCheckedCheckboxes == max_checks) {
+	      $('#start-selected').text("Start Selected: " + countCheckedCheckboxes + " (Max Reached)");
+              $checkboxes.attr('disabled', 'disabled');
+	      $checkboxes.filter(':checked').removeAttr('disabled');
+	  } else if (countCheckedCheckboxes != 0) {
+	      $('#start-selected').text("Start Selected: " + countCheckedCheckboxes);
+	      $checkboxes.removeAttr('disabled');
+	  } else {
+	      $('#start-selected').text("Start Selected");
+	      $checkboxes.removeAttr('disabled');
+	  }
+      });
+      
+  });
+  
+</script>
