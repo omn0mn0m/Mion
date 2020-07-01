@@ -271,7 +271,7 @@ def profile_code(request):
         code += "__Current__\n\n"
         
         for post in current_posts:
-            code += "[{}](https://anilist.co/thread/{}/comment/{}) | ".format(post.challenge.name,
+            code += "[{}](https://anilist.co/forum/thread/{}/comment/{}) | ".format(post.challenge.name,
                                                                               post.challenge.thread_id,
                                                                               post.comment_id)
 
@@ -281,7 +281,7 @@ def profile_code(request):
         code += "\n\n__Past__\n\n"
         
         for post in past_posts:
-            code += "[{}](https://anilist.co/thread/{}/comment/{}) | ".format(post.challenge.name,
+            code += "[{}](https://anilist.co/forum/thread/{}/comment/{}) | ".format(post.challenge.name,
                                                                               post.challenge.thread_id,
                                                                               post.comment_id)
             
