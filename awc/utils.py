@@ -54,104 +54,111 @@ class Utils(object):
         parsed_comment = {}
         requirements = []
 
-        parsed_comment['start'] = re.split('Start Date: ', lines[2])[1]
-        parsed_comment['finish'] = re.split('Finish Date: ', lines[3])[1]
-        parsed_comment['category'] = submission.challenge.category
-        parsed_comment['extra'] = ''
+        try:
+            parsed_comment['start'] = re.split('Start Date: ', lines[2])[1]
+            parsed_comment['finish'] = re.split('Finish Date: ', lines[3])[1]
+            parsed_comment['category'] = submission.challenge.category
+            parsed_comment['extra'] = ''
 
-        req_start_index = [i for i, s in enumerate(lines) if "Legend: [X] = Completed [O] = Not Completed" in s][0]
+            req_start_index = [i for i, s in enumerate(lines) if "Legend: [X] = Completed [O] = Not Completed" in s][0]
 
-        easy_index = -1
-        normal_index = -1
-        hard_index = -1
-        bonus_index = -1
-        
-        prev_requirement = {}
-        
-        for i, line in enumerate(lines[req_start_index + 1:]):
-            line = line.strip()
+            easy_index = -1
+            normal_index = -1
+            hard_index = -1
+            bonus_index = -1
 
-            if Utils.MODE_EASY in line:
-                easy_index = i
-            elif Utils.MODE_NORMAL in line:
-                normal_index = i
-            elif Utils.MODE_HARD in line:
-                hard_index = i
-            elif '__Bonus__' in line:
-                bonus_index = i
-            elif '---' in line:
-                pass
-            elif len(line) > 0:
-                requirement = {}
-                
-                # Modes are not used in for this challenge
-                if easy_index == -1:
-                    requirement['mode'] = Requirement.DEFAULT
-                # Modes are used in this challenge
-                else:
-                    if bonus_index != -1 and i > bonus_index:
-                        requirement['mode'] = Requirement.BONUS
-                    elif hard_index != -1 and i > hard_index:
-                        requirement['mode'] = Requirement.HARD
-                    elif normal_index != -1 and i > normal_index:
-                        requirement['mode'] = Requirement.NORMAL
-                    elif easy_index != -1 and i > easy_index:
-                        requirement['mode'] = Requirement.EASY
+            prev_requirement = {}
+
+            for i, line in enumerate(lines[req_start_index + 1:]):
+                line = line.strip()
+
+                if Utils.MODE_EASY in line:
+                    easy_index = i
+                elif Utils.MODE_NORMAL in line:
+                    normal_index = i
+                elif Utils.MODE_HARD in line:
+                    hard_index = i
+                elif '__Bonus__' in line:
+                    bonus_index = i
+                elif '---' in line:
+                    pass
+                elif len(line) > 0:
+                    requirement = {}
+
+                    # Modes are not used in for this challenge
+                    if easy_index == -1:
+                        requirement['mode'] = Requirement.DEFAULT
+                    # Modes are used in this challenge
                     else:
-                        print("This should not have happened... Mode not registered")
-                
-                bonus = line[0] == 'B'
-
-                # If a requirement listing was found
-                if line[0].isdigit() or bonus:
-                    requirement['bonus'] = bonus
-                    
-                    requirement['number'] = re.search(r'([0-9]+)[.\)]', line).group(1)
-
-                    # Determine completed status
-                    completed = re.search(r'\[[XO]\]', line).group()
-
-                    if completed == '[X]':
-                        requirement['completed'] = True
-                    else:
-                        requirement['completed'] = False
-
-                    # Determine start and finish dates
-                    requirement['start'] = re.search('Start: ([DMY0-9/]+)\s', line).group(1)
-                    requirement['finish'] = re.search('Finish: ([DMY0-9/]+)', line).group(1)
-
-                    # Determine requirement text
-                    requirement['text'] = submission.challenge.requirement_set.get(number=requirement['number'], bonus=bonus).text
-                    
-                    # Determine the anime
-                    requirement['anime'] = re.search('\_\s\[(.*)\]\(https:\/\/anilist\.co\/anime\/[0-9\/]+\)', line).group(1)
-                    requirement['link'] = re.search(r'\((https:\/\/anilist\.co\/anime\/[0-9\/]+)\)', line).group(1)
-
-                    # Get extra stuff
-                    requirement['extra_newline'] = submission.challenge.requirement_set.get(number=requirement['number'], bonus=bonus).extra_newline
-
-                    if not requirement['extra_newline']:
-                        requirement['extra'] = re.split('\_ \[.+\]\(https:\/\/anilist\.co\/anime\/[0-9\/]+\)', line)[1]
-                        
-                    prev_requirement = requirement
-                    requirements.append(requirement)
-                else:
-                    if prev_requirement:
-                        if prev_requirement['extra'].isspace():
-                            prev_requirement['extra'] = line
+                        if bonus_index != -1 and i > bonus_index:
+                            requirement['mode'] = Requirement.BONUS
+                        elif hard_index != -1 and i > hard_index:
+                            requirement['mode'] = Requirement.HARD
+                        elif normal_index != -1 and i > normal_index:
+                            requirement['mode'] = Requirement.NORMAL
+                        elif easy_index != -1 and i > easy_index:
+                            requirement['mode'] = Requirement.EASY
                         else:
-                            prev_requirement['extra'] += ('\n' + line)
+                            print("This should not have happened... Mode not registered")
 
-                        requirements[requirements.index(prev_requirement)] = prev_requirement
-                    else:
-                        if parsed_comment['extra'].isspace() or parsed_comment['extra'] == '':
-                            parsed_comment['extra'] = line
+                    bonus = line[0] == 'B'
+
+                    # If a requirement listing was found
+                    if line[0].isdigit() or bonus:
+                        requirement['bonus'] = bonus
+
+                        requirement['number'] = re.search(r'([0-9]+)[.\)]', line).group(1)
+
+                        # Determine completed status
+                        completed = re.search(r'\[[XO]\]', line).group()
+
+                        if completed == '[X]':
+                            requirement['completed'] = True
                         else:
-                            parsed_comment['extra'] += '\n' + line
-            else:
-                prev_requirement = None
-                    
-        parsed_comment['requirements'] = requirements
+                            requirement['completed'] = False
+
+                        # Determine start and finish dates
+                        requirement['start'] = re.search('Start: ([DMY0-9/]+)\s', line).group(1)
+                        requirement['finish'] = re.search('Finish: ([DMY0-9/]+)', line).group(1)
+
+                        # Determine requirement text
+                        requirement['text'] = submission.challenge.requirement_set.get(number=requirement['number'], bonus=bonus).text
+
+                        # Determine the anime
+                        requirement['anime'] = re.search('\_\s\[(.*)\]\(https:\/\/anilist\.co\/anime\/[0-9\/]+\)', line).group(1)
+                        requirement['link'] = re.search(r'\((https:\/\/anilist\.co\/anime\/[0-9\/]+)\)', line).group(1)
+
+                        # Get extra stuff
+                        requirement['extra_newline'] = submission.challenge.requirement_set.get(number=requirement['number'], bonus=bonus).extra_newline
+
+                        if not requirement['extra_newline']:
+                            requirement['extra'] = re.split('\_ \[.+\]\(https:\/\/anilist\.co\/anime\/[0-9\/]+\)', line)[1]
+
+                        prev_requirement = requirement
+                        requirements.append(requirement)
+                    else:
+                        if prev_requirement:
+                            if prev_requirement['extra'].isspace():
+                                prev_requirement['extra'] = line
+                            else:
+                                prev_requirement['extra'] += ('\n' + line)
+
+                            requirements[requirements.index(prev_requirement)] = prev_requirement
+                        else:
+                            if parsed_comment['extra'].isspace() or parsed_comment['extra'] == '':
+                                parsed_comment['extra'] = line
+                            else:
+                                parsed_comment['extra'] += '\n' + line
+                else:
+                    prev_requirement = None
+
+            parsed_comment['requirements'] = requirements
+            parsed_comment['failed'] = False
+        except:
+            parsed_comment = {
+                'failed': True,
+                'comment': comment,
+            }
                 
         return parsed_comment
 

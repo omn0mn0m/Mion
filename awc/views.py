@@ -174,6 +174,9 @@ def edit(request, challenge_name):
     context['challenge'] = challenge
     context['requirements'] = requirements
 
+    if parsed_response['failed']:
+        context['error_message'] = "Failed to parse your challenge code... Make sure that your comment follows the AWC challenge code format for this challenge."
+
     if 'user' in request.session:
         try:
             context['user'] = User.objects.get(name=request.session['user']['name'])

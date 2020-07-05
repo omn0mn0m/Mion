@@ -4,7 +4,7 @@
 <h1>{{ challenge.name  }} <a href="https://anilist.co/forum/thread/{{ challenge.thread_id  }}">[Thread]</a>
 
 {% if submission %}
-  <a href="https://anilist.co/forum/thread/{{ submission.thread_id  }}/comment/{{ submission.comment_id }}">[Comment]</a></h1>
+  <a href="https://anilist.co/forum/thread/{{ submission.thread_id }}/comment/{{ submission.comment_id }}">[Comment]</a></h1>
 {% else %}
 </h1>
 {% endif %}
@@ -12,6 +12,7 @@
 <p>
   {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
 
+{% if not response.failed %}
 <form method="post">
   {% csrf_token %}
   
@@ -159,6 +160,12 @@
 </p>
 
 <p id="errors" class="text-danger"></p>
+{% else %}
+<h2>Your Challenge Code</h2>
+<p>
+  {{ response.comment|linebreaks }}
+</p>
+{% endif %}
 {% endblock %}
 
 {% block javascript %}
