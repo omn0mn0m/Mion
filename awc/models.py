@@ -28,6 +28,7 @@ class Challenge(models.Model):
         choices = CATEGORY_CHOICES,
         default = TIMED,
     )
+    extra = models.TextField(blank=True, default='')
 
     def __str__(self):
         return self.name
@@ -56,7 +57,7 @@ class Requirement(models.Model):
         default = DEFAULT,
     )
     text = models.CharField(max_length=250)
-    extra = models.CharField(max_length=250, blank=True, default='')
+    extra = models.TextField(blank=True, default='')
     extra_newline = models.BooleanField(default=False)
 
     bonus = models.BooleanField(default=False)

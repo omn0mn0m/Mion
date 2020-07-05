@@ -19,7 +19,12 @@
   <input type="text" name="challenge-start" id="challenge-start" value={{ response.start }}>
   
   <label for="challenge-finish">Challenge Finish Date</label>
-  <input type="text" name="challenge-finish" id="challenge-finish" value={{ response.finish }}><br><br>
+  <input type="text" name="challenge-finish" id="challenge-finish" value={{ response.finish }}><br>
+
+  {% if challenge.extra %}
+  <label for="challenge-extra">Challenge Extra</label>
+  <textarea class="autoExpand" name="challenge-extra" id="challenge-extra" cols="100">{{ challenge.extra }}</textarea><br><br>
+  {% endif %}
   
   <p>These requirements are automatically generated from a challenge code. The <a href="https://anilist.co/forum/thread/{{ challenge.thread_id  }}">full challenge post</a> should still be read through for information and reference.</p>
   
@@ -102,7 +107,7 @@
     
     {% if requirement.extra %}
     <label for="requirement-extra-bonus-{{ requirement.number }}">Extra</label>
-    <input type="text" name="requirement-extra-bonus-{{ requirement.number }}" id="requirement-extra-bonus-{{ requirement.number }}" value="{{ requirement.extra }}" size=100>
+    <textarea class="autoExpand" name="requirement-extra-bonus-{{ requirement.number }}" id="requirement-extra-bonus-{{ requirement.number }}" cols="100">{{ requirement.extra }}</textarea>
     
     <br><br>
     {% endif %}
@@ -121,7 +126,7 @@
     
     {% if requirement.extra %}
     <label for="requirement-extra-{{ requirement.number }}">Extra</label>
-    <input type="text" name="requirement-extra-{{ requirement.number }}" id="requirement-extra-{{ requirement.number }}" value="{{ requirement.extra }}" size=100>
+    <textarea class="autoExpand" name="requirement-extra-{{ requirement.number }}" id="requirement-extra-{{ requirement.number }}" cols="100">{{ requirement.extra }}</textarea>
     {% endif %}
     {% endif %}
     
@@ -158,7 +163,6 @@
 
 {% block javascript %}
 <script>
-
   function checkCompleted() {
       var valid = true;
 

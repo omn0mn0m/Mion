@@ -53,9 +53,10 @@ def index(request):
                 challenge_info['finish'] = 'DD/MM/YYYY'
 
                 category = challenge.category
+                challenge_extra = challenge.extra
 
                 # Generates the challenge comment
-                filled_code = Utils.create_comment_string(challenge_info, challenge.requirement_set.all(), category, request)
+                filled_code = Utils.create_comment_string(challenge_info, challenge.requirement_set.all().order_by('id'), category, challenge_extra, request)
 
                 # Variables for the GraphQL query
                 variables = {
@@ -111,10 +112,11 @@ def edit(request, challenge_name):
             challenge_info['name'] = challenge_name
             challenge_info['start'] = request.POST['challenge-start']
             challenge_info['finish'] = request.POST['challenge-finish']
-
+            
             category = challenge.category
+            challenge_extra = challenge.extra
 
-            filled_code = Utils.create_comment_string(challenge_info, challenge.requirement_set.all(), category, request)
+            filled_code = Utils.create_comment_string(challenge_info, challenge.requirement_set.all(), category, challenge_extra, request)
 
             headers = {
                 'Authorization': 'Bearer ' + request.session['access_token'],

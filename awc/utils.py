@@ -57,6 +57,7 @@ class Utils(object):
         parsed_comment['start'] = re.split('Start Date: ', lines[2])[1]
         parsed_comment['finish'] = re.split('Finish Date: ', lines[3])[1]
         parsed_comment['category'] = submission.challenge.category
+        parsed_comment['extra'] = ''
 
         req_start_index = [i for i, s in enumerate(lines) if "Legend: [X] = Completed [O] = Not Completed" in s][0]
 
@@ -66,7 +67,6 @@ class Utils(object):
         bonus_index = -1
         
         prev_requirement = {}
-        prev_line_is_req = False
         
         for i, line in enumerate(lines[req_start_index + 1:]):
             line = line.strip()
@@ -104,8 +104,6 @@ class Utils(object):
 
                 # If a requirement listing was found
                 if line[0].isdigit() or bonus:
-                    prev_line_is_req = True
-
                     requirement['bonus'] = bonus
                     
                     requirement['number'] = re.search(r'([0-9]+)[.\)]', line).group(1)
@@ -134,25 +132,31 @@ class Utils(object):
 
                     if not requirement['extra_newline']:
                         requirement['extra'] = re.split('\_ \[.+\]\(https:\/\/anilist\.co\/anime\/[0-9\/]+\)', line)[1]
+                        
                     prev_requirement = requirement
                     requirements.append(requirement)
                 else:
-                    if prev_line_is_req and prev_requirement['extra_newline']:
-                        print(line)
-                        if prev_requirement:
+                    if prev_requirement:
+                        if prev_requirement['extra'].isspace():
                             prev_requirement['extra'] = line
+                        else:
+                            prev_requirement['extra'] += ('\n' + line)
 
-                            requirements[requirements.index(prev_requirement)] = prev_requirement
-                            prev_line_is_req = False
+                        requirements[requirements.index(prev_requirement)] = prev_requirement
                     else:
-                        prev_requirement.clear()
+                        if parsed_comment['extra'].isspace() or parsed_comment['extra'] == '':
+                            parsed_comment['extra'] = line
+                        else:
+                            parsed_comment['extra'] += '\n' + line
+            else:
+                prev_requirement = None
                     
         parsed_comment['requirements'] = requirements
                 
         return parsed_comment
 
     @staticmethod
-    def create_comment_string(challenge_info, requirements, category, request):
+    def create_comment_string(challenge_info, requirements, category, challenge_extra, request):
         reqs = []
 
         for requirement in requirements:
@@ -205,29 +209,46 @@ class Utils(object):
                 comment = comment + "\n---\n__Mode: Easy__\n"
                 
                 for requirement in sorted(reqs[Requirement.EASY], key=itemgetter('number')):
-                    comment = comment + Utils.create_requirement_string(requirement)
+                    if requirement['bonus']:
+                        comment = comment + 'B' + Utils.create_requirement_string(requirement)
+                    else:
+                        comment = comment + Utils.create_requirement_string(requirement)
             if reqs[Requirement.NORMAL]:
                 comment = comment + "\n---\n__Mode: Normal__\n"
 
                 for requirement in sorted(reqs[Requirement.NORMAL], key=itemgetter('number')):
-                    comment = comment + Utils.create_requirement_string(requirement)
+                    if requirement['bonus']:
+                        comment = comment + 'B' + Utils.create_requirement_string(requirement)
+                    else:
+                        comment = comment + Utils.create_requirement_string(requirement)
             if reqs[Requirement.HARD]:
                 comment = comment + "\n---\n__Mode: Hard__\n"
 
                 for requirement in sorted(reqs[Requirement.HARD], key=itemgetter('number')):
-                    comment = comment + Utils.create_requirement_string(requirement)
+                    if requirement['bonus']:
+                        comment = comment + 'B' + Utils.create_requirement_string(requirement)
+                    else:
+                        comment = comment + Utils.create_requirement_string(requirement)
             if reqs[Requirement.BONUS]:
                 comment = comment + "\n---\n__Bonus__\n"
 
                 for requirement in sorted(reqs[Requirement.BONUS], key=itemgetter('number')):
-                    comment = comment + 'B' + Utils.create_requirement_string(requirement)
+                    if requirement['bonus']:
+                        comment = comment + 'B' + Utils.create_requirement_string(requirement)
+                    else:
+                        comment = comment + Utils.create_requirement_string(requirement)
             if reqs[Requirement.DEFAULT]:
                 comment = comment + "\n---\n__Misc__\n"
 
                 for requirement in sorted(reqs[Requirement.DEFAULT], key=itemgetter('number')):
-                    comment = comment + Utils.create_requirement_string(requirement)
+                    if requirement['bonus']:
+                        comment = comment + 'B' + Utils.create_requirement_string(requirement)
+                    else:
+                        comment = comment + Utils.create_requirement_string(requirement)
         else:
             print("Not implemented...")
+
+        comment = comment + '\n' + request.POST.get('challenge-extra', challenge_extra).strip()
         
         return comment
 
@@ -249,8 +270,8 @@ class Utils(object):
         
         prev_requirement = None
 
-        for i, line in enumerate(lines[req_start_index + 1:]):
-            line = line.strip()
+        for i, line in enumerate(lines[req_start_index + 2:]):
+            line = line.lstrip()
 
             if Utils.MODE_EASY in line:
                 easy_index = i
@@ -284,6 +305,8 @@ class Utils(object):
                 bonus = line[0] == 'B'
                 
                 if line[0].isdigit() or bonus:
+                    line = line.rstrip()
+                    
                     num_search = re.search(r'([0-9]+)[.\)]', line).group(1)
                     
                     # Determine requirement text
@@ -293,17 +316,29 @@ class Utils(object):
                         text = text_regex.group(1)
                     else:
                         text = ' '
-                        
+
+                    # Handles in-line extra info
                     extra = re.split('\_ \[.+\]\(https:\/\/anilist\.co\/anime\/[0-9\/]+\)', line)[1]
                     
                     requirement = Requirement(number=num_search, mode=mode, challenge=challenge, text=text, extra=extra, bonus=bonus)
                     prev_requirement = requirement
                     requirement.save()
                 else:
-                    if lines[req_start_index + 1:][i - 1][0].isdigit() or line[req_start_index + 1:][i - 1][0] == 'B':
-                        if prev_requirement:
+                    # Handles new line extra info
+                    if prev_requirement:
+                        if prev_requirement.extra.isspace():
                             prev_requirement.extra = line
                             prev_requirement.extra_newline = True
-                            prev_requirement.save()
+                        else:
+                            prev_requirement.extra += ('\n' + line)
+
+                        prev_requirement.save()
                     else:
-                        prev_requirement = None
+                        if challenge.extra.isspace() or challenge.extra == '':
+                            challenge.extra = line
+                        else:
+                            challenge.extra += '\n' + line
+                            
+                        challenge.save()
+            else:
+                prev_requirement = None
