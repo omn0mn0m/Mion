@@ -153,12 +153,6 @@
   {% endif %}
 </p>
 
-<p>
-  <form action="{% url 'awc:delete-post' submission.comment_id %}" method='GET'>
-    <input class="btn btn-danger" type="submit" onclick="return confirm('Are you sure you want to delete?')" value="Delete">
-  </form>
-</p>
-
 <p id="errors" class="text-danger"></p>
 {% else %}
 <h2>Your Challenge Code</h2>
@@ -166,6 +160,13 @@
   {{ response.comment|linebreaks }}
 </p>
 {% endif %}
+
+<p>
+  <form action="{% url 'awc:delete-post' submission.comment_id %}" method='GET'>
+    <input class="btn btn-danger" type="submit" onclick="return confirm('Are you sure you want to delete?')" value="Delete">
+  </form>
+</p>
+
 {% endblock %}
 
 {% block javascript %}

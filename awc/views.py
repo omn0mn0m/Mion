@@ -401,32 +401,33 @@ def submit_post(request, challenge_name, thread_id, comment_id):
 
     return HttpResponseRedirect(reverse('awc:index'))
 
-def delete_post(request, comment_id, is_submission=False):
-    headers = {
-        'Authorization': 'Bearer ' + request.session['access_token'],
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-    }
-    
-    query = '''
-    mutation ($id: Int) {
-      DeleteThreadComment (id: $id) {
-        deleted,
-      }
-    }
-    '''
+def delete_post(request, comment_id, full_delete=False, is_submission=False):
+    if full_delete:
+        headers = {
+            'Authorization': 'Bearer ' + request.session['access_token'],
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+        }
 
-    variables = {
-        'id': comment_id
-    }
+        query = '''
+        mutation ($id: Int) {
+          DeleteThreadComment (id: $id) {
+            deleted,
+          }
+        }
+        '''
 
-    # Make the HTTP Api request
-    response = requests.post(ANILIST_API_URL, json={'query': query, 'variables': variables}, headers=headers)
-    
-    response_data = json.loads(response.text)
+        variables = {
+            'id': comment_id
+        }
 
-    
-    if response_data['data']['DeleteThreadComment']['deleted']:
+        # Make the HTTP Api request
+        response = requests.post(ANILIST_API_URL, json={'query': query, 'variables': variables}, headers=headers)
+
+        response_data = json.loads(response.text)
+
+
+    if (not full_delete) or response_data['data']['DeleteThreadComment']['deleted']:
         if is_submission:
             submission = Submission.objects.get(submission_comment_id=comment_id)
             submission.submission_comment_id = None
