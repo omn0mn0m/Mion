@@ -133,6 +133,8 @@ class Utils(object):
 
                         if not requirement['extra_newline']:
                             requirement['extra'] = re.split('\_ \[.+\]\(https:\/\/anilist\.co\/anime\/[0-9\/]+\)', line)[1]
+                        else:
+                            requirement['extra'] = ''
 
                         prev_requirement = requirement
                         requirements.append(requirement)
