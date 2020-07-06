@@ -155,6 +155,10 @@
 
 <p id="errors" class="text-danger"></p>
 {% else %}
+<h2>Error to Report</h2>
+<p>
+  {{ response.error }}
+</p>
 <h2>Your Challenge Code</h2>
 <p>
   {{ response.comment|linebreaks }}

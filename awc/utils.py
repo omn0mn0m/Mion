@@ -154,9 +154,10 @@ class Utils(object):
 
             parsed_comment['requirements'] = requirements
             parsed_comment['failed'] = False
-        except:
+        except Exception as e:
             parsed_comment = {
                 'failed': True,
+                'error': e,
                 'comment': comment,
             }
                 
