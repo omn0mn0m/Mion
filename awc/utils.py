@@ -55,7 +55,7 @@ class Utils(object):
         requirements = []
 
         try:
-            if lines[2].isspace():
+            if lines[1].isspace():
                 parsed_comment['start'] = re.split('Start Date: ', lines[2])[1]
                 parsed_comment['finish'] = re.split('Finish Date: ', lines[3])[1]
             else:
