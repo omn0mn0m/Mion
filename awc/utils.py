@@ -55,8 +55,13 @@ class Utils(object):
         requirements = []
 
         try:
-            parsed_comment['start'] = re.split('Start Date: ', lines[2])[1]
-            parsed_comment['finish'] = re.split('Finish Date: ', lines[3])[1]
+            if lines[2].isspace():
+                parsed_comment['start'] = re.split('Start Date: ', lines[2])[1]
+                parsed_comment['finish'] = re.split('Finish Date: ', lines[3])[1]
+            else:
+                parsed_comment['start'] = re.split('Start Date: ', lines[1])[1]
+                parsed_comment['finish'] = re.split('Finish Date: ', lines[2])[1]
+                
             parsed_comment['category'] = submission.challenge.category
             parsed_comment['extra'] = ''
 
