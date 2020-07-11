@@ -30,6 +30,8 @@ class Challenge(models.Model):
     )
     extra = models.TextField(blank=True, default='')
 
+    has_prerequisites = models.BooleanField(default=False)
+
     def __str__(self):
         return self.name
 

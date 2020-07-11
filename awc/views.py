@@ -107,16 +107,7 @@ def edit(request, challenge_name):
     
     if request.POST:
         try:
-            challenge_info = {}
-            
-            challenge_info['name'] = challenge_name
-            challenge_info['start'] = request.POST.get('challenge-start', 'DD/MM/YYYY').strip()
-            challenge_info['finish'] = request.POST.get('challenge-finish', 'DD/MM/YYYY').strip()
-            
-            category = challenge.category
-            challenge_extra = request.POST.get('challenge-extra', challenge.extra).strip()
-
-            filled_code = Utils.create_comment_string(challenge_info, challenge.requirement_set.all(), category, challenge_extra, request)
+            filled_code = Utils.create_comment_string(request, challenge)
 
             headers = {
                 'Authorization': 'Bearer ' + request.session['access_token'],

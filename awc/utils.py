@@ -172,10 +172,13 @@ class Utils(object):
         return parsed_comment
 
     @staticmethod
-    def create_comment_string(challenge_info, requirements, category, challenge_extra, request):
+    def create_comment_string(request, challenge):
+        category = challenge.category
+        challenge_extra = request.POST.get('challenge-extra', challenge.extra).strip()
+            
         reqs = []
 
-        for requirement in requirements:
+        for requirement in challenge.requirement_set.all():
             req = {}
 
             req['number'] = requirement.number
@@ -212,8 +215,9 @@ class Utils(object):
 
             reqs.append(req)
         
-        comment = "# __{name}__\n\nChallenge Start Date: {start}\nChallenge Finish Date: {finish}\nLegend: [X] = Completed [O] = Not Completed\n\n"
-        comment = comment.format(**challenge_info)
+        comment = "# __{name}__\n\n".format(name=challenge.name)
+        comment += "Challenge Start Date: {start}\nChallenge Finish Date: {finish}\nLegend: [X] = Completed [O] = Not Completed\n\n".format(start=request.POST.get('challenge-start', 'DD/MM/YYYY').strip(),
+                                                                                                                                            finish=request.POST.get('challenge-finish', 'DD/MM/YYYY').strip())
 
         reqs = Utils.split_by_key(reqs, 'mode')
 
@@ -274,11 +278,17 @@ class Utils(object):
 
         challenge_name = re.search(r'# \_\_(.*)\_\_', lines[0].strip()).group(1)
         
-        challenge = Challenge(name=challenge_name, thread_id=thread_id, category=category)
-        challenge.save()
-
         req_start_index = [i for i, s in enumerate(lines) if "Legend: [X] = Completed [O] = Not Completed" in s][0]
 
+        has_prerequisites = False
+        has_prerequisites = [True for line in lines[:req_start_index] if "Link to entry" in line]
+
+        challenge = Challenge(name=challenge_name,
+                              thread_id=thread_id,
+                              category=category,
+                              has_prerequisites=has_prerequisites,)
+        challenge.save()
+        
         easy_index = -1
         normal_index = -1
         hard_index = -1
