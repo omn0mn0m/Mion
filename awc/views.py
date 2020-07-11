@@ -110,11 +110,11 @@ def edit(request, challenge_name):
             challenge_info = {}
             
             challenge_info['name'] = challenge_name
-            challenge_info['start'] = request.POST['challenge-start']
-            challenge_info['finish'] = request.POST['challenge-finish']
+            challenge_info['start'] = request.POST.get('challenge-start', 'DD/MM/YYYY').strip()
+            challenge_info['finish'] = request.POST.get('challenge-finish', 'DD/MM/YYYY').strip()
             
             category = challenge.category
-            challenge_extra = challenge.extra
+            challenge_extra = request.POST.get('challenge-extra', challenge.extra).strip()
 
             filled_code = Utils.create_comment_string(challenge_info, challenge.requirement_set.all(), category, challenge_extra, request)
 
