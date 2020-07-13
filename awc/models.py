@@ -30,7 +30,7 @@ class Challenge(models.Model):
     )
     extra = models.TextField(blank=True, default='')
 
-    has_prerequisites = models.BooleanField(default=False)
+    prerequisites = models.ManyToManyField('self', symmetrical=False)
 
     def __str__(self):
         return self.name

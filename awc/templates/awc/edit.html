@@ -23,7 +23,24 @@
   <input type="text" name="challenge-finish" id="challenge-finish" value={{ response.finish }}><br>
   
   <label for="challenge-extra">Challenge Extra</label>
-  <textarea class="autoExpand" name="challenge-extra" id="challenge-extra" cols="100">{{ response.extra }}</textarea><br><br>
+  <textarea class="autoExpand" name="challenge-extra" id="challenge-extra" cols="100">{{ response.extra }}</textarea><br>
+
+  <h3>Challenge Prerequisites</h3>
+  {% for prerequisite in challenge.prerequisites.all %}
+  <label for="challenge-prerequisites">Prerequisite: {{ prerequisite.name }}</label>
+  <select name="prerequisite-{{ prerequisites.name }}" id="mode-{{ requirement.number }}">
+    {% for submission in user.submission_set.all %}
+    <option value="{{ submission.id }}" {% if submission.challenge == prerequisite.challenge.name %}selected{% endif %}>{{ submission.challenge }}</option>
+    {% endfor %}
+  </select>
+
+  <label for="challenge-start">Finish Date</label>
+  <input type="text" name="prerequisite-{{ prerequisites.name }}-finish" id="prerequisite-{{ prerequisites.name }}-finish" value="DD/MM/YYYY">
+  {% empty %}
+  
+  {% endfor %}
+
+  <hr>
   
   <p>These requirements are automatically generated from a challenge code. The <a href="https://anilist.co/forum/thread/{{ challenge.thread_id  }}">full challenge post</a> should still be read through for information and reference.</p>
   
@@ -39,18 +56,11 @@
   
   {% if requirement.bonus %}
   <label for="completed-bonus-{{ requirement.number }}">Completed</label>
-  {% if requirement.completed %}
-  <input type="checkbox" name="completed-bonus-{{ requirement.number }}" id="completed-bonus-{{ requirement.number }}" checked>
-  {% else %}
-  <input type="checkbox" name="completed-bonus-{{ requirement.number }}" id="completed-bonus-{{ requirement.number }}">
-  {% endif %}
+  <input type="checkbox" name="completed-bonus-{{ requirement.number }}" id="completed-bonus-{{ requirement.number }}" {% if requirement.completed %}checked{% endif %}>
+
   {% else %}
   <label for="completed-{{ requirement.number }}">Completed</label>
-  {% if requirement.completed %}
-  <input type="checkbox" name="completed-{{ requirement.number }}" id="completed[]" checked>
-  {% else %}
-  <input type="checkbox" name="completed-{{ requirement.number }}" id="completed[]">
-  {% endif %}
+  <input type="checkbox" name="completed-bonus-{{ requirement.number }}" id="completed-bonus-{{ requirement.number }}" {% if requirement.completed %}checked{% endif %}>
   {% endif %}
 
   {% if requirement.mode != "D" %}
@@ -63,31 +73,12 @@
     <select name="mode-{{ requirement.number }}" id="mode-{{ requirement.number }}">
       {% endif %}
       
-      {% if requirement.mode == "E" %}
-      <option value="E" selected>Easy</option>
-      {% else %}
-      <option value="E">Easy</option>
-      {% endif %}
-      
-      {% if requirement.mode == "N" %}
-      <option value="N" selected>Normal</option>
-      {% else %}
-      <option value="N">Normal</option>
-      {% endif %}
-      
-      {% if requirement.mode == "H" %}
-      <option value="H" selected>Hard</option>
-      {% else %}
-      <option value="H">Hard</option>
-      {% endif %}
-      
-      {% if requirement.mode == "B" %}
-      <option value="B" selected>Bonus</option>
-      {% else %}
-      <option value="B">Bonus</option>
-      {% endif %}
+      <option value="E" {% if requirement.mode == "E" %}selected{% endif %}>Easy</option>
+      <option value="N" {% if requirement.mode == "N" %}selected{% endif %}>Normal</option>
+      <option value="H" {% if requirement.mode == "H" %}selected{% endif %}>Hard</option>
+      <option value="B" {% if requirement.mode == "B" %}selected{% endif %}>Bonus</option>
     </select>
-    {% endif %}
+    {% endif %} 
     
     <br><br>
     

@@ -56,7 +56,7 @@ def index(request):
                 challenge_extra = challenge.extra
 
                 # Generates the challenge comment
-                filled_code = Utils.create_comment_string(challenge_info, challenge.requirement_set.all().order_by('id'), category, challenge_extra, request)
+                filled_code = Utils.create_comment_string(request, challenge)
 
                 # Variables for the GraphQL query
                 variables = {
