@@ -57,8 +57,20 @@ class Utils(object):
 
         try:
             req_start_index = [i for i, s in enumerate(lines) if "Legend: [X] = Completed [O] = Not Completed" in s][0]
+
+            has_prerequisites = submission.challenge.prerequisites.exists()
+
+            if has_prerequisites:
+                parsed_comment['prerequisites'] = {}
             
-            for line in lines[:req_start_index]:
+            for line in lines[:req_start_index - 1]:
+                if has_prerequisites:
+                    prerequisite_challenge_name = re.search(r'\[(.*)\]', line)
+                    prerequisite_finish_date_regex = re.search(r'\) Finish Date: (.*)', line)
+
+                    if prerequisite_challenge_name and prerequisite_finish_date_regex:
+                        parsed_comment['prerequisites'][prerequisite_challenge_name.group(1)] = prerequisite_finish_date_regex.group(1)
+                
                 start_regex = re.search(r'Start Date: (.*)', line)
 
                 if start_regex:
@@ -231,9 +243,12 @@ class Utils(object):
 
                 print(err)
             
-            comment += "[{prerequisite_name}]({post_link}) Finish: {finish_date}\n\n".format(prerequisite_name=prerequisite.name,
+            comment += "[{prerequisite_name}]({post_link}) Finish Date: {finish_date}\n".format(prerequisite_name=prerequisite.name,
                                                                                        post_link=post_link,
                                                                                        finish_date=request.POST.get('prerequisite-' + prerequisite.name + '-finish', 'DD/MM/YYYY').strip())
+
+        if challenge.prerequisites.count() > 0:
+            comment += '\n'
         
         # Dates
         comment += "Challenge Start Date: {start}\nChallenge Finish Date: {finish}\nLegend: [X] = Completed [O] = Not Completed\n\n".format(start=request.POST.get('challenge-start', 'DD/MM/YYYY').strip(),

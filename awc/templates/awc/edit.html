@@ -23,14 +23,16 @@
   <input type="text" name="challenge-finish" id="challenge-finish" value={{ response.finish }}><br>
   
   <label for="challenge-extra">Challenge Extra</label>
-  <textarea class="autoExpand" name="challenge-extra" id="challenge-extra" cols="100">{{ response.extra }}</textarea><br>
+  <textarea class="autoExpand" name="challenge-extra" id="challenge-extra" cols="100">{{ response.extra }}</textarea><br><br>
 
+  <hr>
+  
   <h3>Challenge Prerequisites</h3>
-  {% for prerequisite in challenge.prerequisites.all %}
-  <h4>{{ prerequisite.name }}</h4
+  {% for prerequisite_name, prerequisite_finish_date in response.prerequisites.items %}
+  <h4>{{ prerequisite_name }}</h4
 
-  <label for="prerequisite-{{ prerequisites.name }}-finish">Finish Date</label>
-  <input type="text" name="prerequisite-{{ prerequisite.name }}-finish" id="prerequisite-{{ prerequisite.name }}-finish" value="DD/MM/YYYY">
+  <label for="prerequisite-{{ prerequisite_name }}-finish">Finish Date</label>
+  <input type="text" name="prerequisite-{{ prerequisite_name }}-finish" id="prerequisite-{{ prerequisite_name }}-finish" value={{ prerequisite_finish_date }}><br><br>
   {% empty %}
   
   {% endfor %}

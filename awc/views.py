@@ -54,6 +54,17 @@ def index(request):
             if not Submission.objects.filter(user__name=request.session['user']['name'], challenge__id=challenge_id).exists():
                 challenge = get_object_or_404(Challenge, id=int(challenge_id))
 
+                # Check for if user has prerequisites
+                prerequisites_failed = False
+
+                for prerequisite in challenge.prerequisites.all():
+                    if not context['user'].submission_set.filter(challenge__name=prerequisite.name).exists():
+                        prerequisites_failed = True
+
+                if prerequisites_failed:
+                    print("Some prerequisites missing...")
+                    continue
+
                 # Sets up default challenge info
                 challenge_info = {}
 
@@ -187,13 +198,15 @@ def add_existing_submission(request):
 
         if form.is_valid():
             challenge = form.cleaned_data['challenge']
-            thread_id = challenge.thread_id
-            comment_id = form.cleaned_data['comment_id']
 
-            submission = Submission(user=User.objects.get(name=request.session['user']['name']),
-                                    challenge=challenge,
-                                    thread_id=thread_id,
-                                    comment_id=comment_id,).save()
+            if not Submission.objects.filter(user__name=request.session['user']['name'], challenge__name=challenge.name).exists():
+                thread_id = challenge.thread_id
+                comment_id = form.cleaned_data['comment_id']
+
+                submission = Submission(user=User.objects.get(name=request.session['user']['name']),
+                                        challenge=challenge,
+                                        thread_id=thread_id,
+                                        comment_id=comment_id,).save()
 
             return HttpResponseRedirect(reverse('awc:index'))
     else:
