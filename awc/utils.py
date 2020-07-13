@@ -176,7 +176,7 @@ class Utils(object):
         return parsed_comment
 
     @staticmethod
-    def create_comment_string(request, challenge):
+    def create_comment_string(request, challenge, user):
         category = challenge.category
         challenge_extra = request.POST.get('challenge-extra', challenge.extra).strip()
             
@@ -224,12 +224,14 @@ class Utils(object):
         # Add prerequitites section
         for prerequisite in challenge.prerequisites.all():
             try:
-                prerequisite_challenge = Challenge.objects.get(pk=request.POST.get('prerequisite-' + prerequisite.name))
+                prerequisite_challenge = user.submission_set.get(challenge__name=prerequisite.name)
                 post_link = "https://anilist.co/forum/thread/{}/comment/{}".format(prerequisite_challenge.challenge.thread_id, prerequisite_challenge.comment_id)
-            except:
+            except Exception as err:
                 post_link = "https://anilist.co/forum/thread/0000/comment/00000"
+
+                print(err)
             
-            comment += "[{prerequisite_name}]({post_link}) Finish: {finish_date}\n\n".format(prerequisite_name=request.POST.get('prerequisite-' + prerequisite.name, prerequisite.name).strip(),
+            comment += "[{prerequisite_name}]({post_link}) Finish: {finish_date}\n\n".format(prerequisite_name=prerequisite.name,
                                                                                        post_link=post_link,
                                                                                        finish_date=request.POST.get('prerequisite-' + prerequisite.name + '-finish', 'DD/MM/YYYY').strip())
         

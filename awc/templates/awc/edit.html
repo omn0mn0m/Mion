@@ -27,15 +27,10 @@
 
   <h3>Challenge Prerequisites</h3>
   {% for prerequisite in challenge.prerequisites.all %}
-  <label for="challenge-prerequisites">Prerequisite: {{ prerequisite.name }}</label>
-  <select name="prerequisite-{{ prerequisites.name }}" id="mode-{{ requirement.number }}">
-    {% for submission in user.submission_set.all %}
-    <option value="{{ submission.id }}" {% if submission.challenge == prerequisite.challenge.name %}selected{% endif %}>{{ submission.challenge }}</option>
-    {% endfor %}
-  </select>
+  <h4>{{ prerequisite.name }}</h4
 
-  <label for="challenge-start">Finish Date</label>
-  <input type="text" name="prerequisite-{{ prerequisites.name }}-finish" id="prerequisite-{{ prerequisites.name }}-finish" value="DD/MM/YYYY">
+  <label for="prerequisite-{{ prerequisites.name }}-finish">Finish Date</label>
+  <input type="text" name="prerequisite-{{ prerequisite.name }}-finish" id="prerequisite-{{ prerequisite.name }}-finish" value="DD/MM/YYYY">
   {% empty %}
   
   {% endfor %}
