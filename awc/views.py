@@ -23,6 +23,15 @@ anilist_redirect_uri= os.environ.get('ANILIST_REDIRECT_URI')
 # Create your views here.
 def index(request):
     context = {}
+
+    if 'user' in request.session:
+        try:
+            context['user'] = User.objects.get(name=request.session['user']['name'])
+        except:
+            print("User not found...")
+    else:
+        if 'user' in context:
+            del context['user']
     
     if request.method == "POST":
         selected_challenges = request.POST.getlist('challenges[]')
@@ -45,6 +54,17 @@ def index(request):
             if not Submission.objects.filter(user__name=request.session['user']['name'], challenge__id=challenge_id).exists():
                 challenge = get_object_or_404(Challenge, id=int(challenge_id))
 
+                # Check for if user has prerequisites
+                prerequisites_failed = False
+
+                for prerequisite in challenge.prerequisites.all():
+                    if not context['user'].submission_set.filter(challenge__name=prerequisite.name).exists():
+                        prerequisites_failed = True
+
+                if prerequisites_failed:
+                    print("Some prerequisites missing...")
+                    continue
+
                 # Sets up default challenge info
                 challenge_info = {}
 
@@ -56,7 +76,7 @@ def index(request):
                 challenge_extra = challenge.extra
 
                 # Generates the challenge comment
-                filled_code = Utils.create_comment_string(challenge_info, challenge.requirement_set.all().order_by('id'), category, challenge_extra, request)
+                filled_code = Utils.create_comment_string(request, challenge, context['user'])
 
                 # Variables for the GraphQL query
                 variables = {
@@ -83,14 +103,7 @@ def index(request):
     context['puzzle_challenge_list'] = Challenge.objects.filter(category=Challenge.PUZZLE).order_by('name')
     context['special_challenge_list'] = Challenge.objects.filter(category=Challenge.SPECIAL).order_by('name')
 
-    if 'user' in request.session:
-        try:
-            context['user'] = User.objects.get(name=request.session['user']['name'])
-        except:
-            pass
-    else:
-        if 'user' in context:
-            del context['user']
+    
 
     context['anilist_redirect_uri'] = anilist_redirect_uri
     context['anilist_client_id'] = anilist_client_id
@@ -104,19 +117,19 @@ def edit(request, challenge_name):
     requirements = challenge.requirement_set.all().order_by("bonus", "number")
 
     context = {}
+
+    if 'user' in request.session:
+        try:
+            context['user'] = User.objects.get(name=request.session['user']['name'])
+        except:
+            print("User not found...")
+    else:
+        if 'user' in context:
+            del context['user']
     
     if request.POST:
         try:
-            challenge_info = {}
-            
-            challenge_info['name'] = challenge_name
-            challenge_info['start'] = request.POST.get('challenge-start', 'DD/MM/YYYY').strip()
-            challenge_info['finish'] = request.POST.get('challenge-finish', 'DD/MM/YYYY').strip()
-            
-            category = challenge.category
-            challenge_extra = request.POST.get('challenge-extra', challenge.extra).strip()
-
-            filled_code = Utils.create_comment_string(challenge_info, challenge.requirement_set.all(), category, challenge_extra, request)
+            filled_code = Utils.create_comment_string(request, challenge, context['user'])
 
             headers = {
                 'Authorization': 'Bearer ' + request.session['access_token'],
@@ -177,15 +190,6 @@ def edit(request, challenge_name):
     if parsed_response['failed']:
         context['error_message'] = "Failed to parse your challenge code... Make sure that your comment follows the AWC challenge code format for this challenge."
 
-    if 'user' in request.session:
-        try:
-            context['user'] = User.objects.get(name=request.session['user']['name'])
-        except:
-            pass
-    else:
-        if 'user' in context:
-            del context['user']
-
     return render(request, 'awc/edit.html', context)
 
 def add_existing_submission(request):
@@ -194,13 +198,15 @@ def add_existing_submission(request):
 
         if form.is_valid():
             challenge = form.cleaned_data['challenge']
-            thread_id = challenge.thread_id
-            comment_id = form.cleaned_data['comment_id']
 
-            submission = Submission(user=User.objects.get(name=request.session['user']['name']),
-                                    challenge=challenge,
-                                    thread_id=thread_id,
-                                    comment_id=comment_id,).save()
+            if not Submission.objects.filter(user__name=request.session['user']['name'], challenge__name=challenge.name).exists():
+                thread_id = challenge.thread_id
+                comment_id = form.cleaned_data['comment_id']
+
+                submission = Submission(user=User.objects.get(name=request.session['user']['name']),
+                                        challenge=challenge,
+                                        thread_id=thread_id,
+                                        comment_id=comment_id,).save()
 
             return HttpResponseRedirect(reverse('awc:index'))
     else:

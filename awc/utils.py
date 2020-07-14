@@ -56,18 +56,34 @@ class Utils(object):
         requirements = []
 
         try:
-            if len(lines[1]) == 0 or lines[1].isspace():
-                parsed_comment['start'] = re.split('Start Date: ', lines[2])[1]
-                parsed_comment['finish'] = re.split('Finish Date: ', lines[3])[1]
-            else:
-                parsed_comment['start'] = re.split('Start Date: ', lines[1])[1]
-                parsed_comment['finish'] = re.split('Finish Date: ', lines[2])[1]
+            req_start_index = [i for i, s in enumerate(lines) if "Legend: [X] = Completed [O] = Not Completed" in s][0]
+
+            has_prerequisites = submission.challenge.prerequisites.exists()
+
+            if has_prerequisites:
+                parsed_comment['prerequisites'] = {}
+            
+            for line in lines[:req_start_index - 1]:
+                if has_prerequisites:
+                    prerequisite_challenge_name = re.search(r'\[(.*)\]', line)
+                    prerequisite_finish_date_regex = re.search(r'\) Finish Date: (.*)', line)
+
+                    if prerequisite_challenge_name and prerequisite_finish_date_regex:
+                        parsed_comment['prerequisites'][prerequisite_challenge_name.group(1)] = prerequisite_finish_date_regex.group(1)
+                
+                start_regex = re.search(r'Start Date: (.*)', line)
+
+                if start_regex:
+                    parsed_comment['start'] = start_regex.group(1)
+                    
+                finish_regex = re.search(r'Finish Date: (.*)', line)
+                
+                if finish_regex:
+                    parsed_comment['finish'] = finish_regex.group(1)
                 
             parsed_comment['category'] = submission.challenge.category
             parsed_comment['extra'] = ''
-
-            req_start_index = [i for i, s in enumerate(lines) if "Legend: [X] = Completed [O] = Not Completed" in s][0]
-
+            
             easy_index = -1
             normal_index = -1
             hard_index = -1
@@ -172,10 +188,13 @@ class Utils(object):
         return parsed_comment
 
     @staticmethod
-    def create_comment_string(challenge_info, requirements, category, challenge_extra, request):
+    def create_comment_string(request, challenge, user):
+        category = challenge.category
+        challenge_extra = request.POST.get('challenge-extra', challenge.extra).strip()
+            
         reqs = []
 
-        for requirement in requirements:
+        for requirement in challenge.requirement_set.all().order_by('id'):
             req = {}
 
             req['number'] = requirement.number
@@ -212,8 +231,28 @@ class Utils(object):
 
             reqs.append(req)
         
-        comment = "# __{name}__\n\nChallenge Start Date: {start}\nChallenge Finish Date: {finish}\nLegend: [X] = Completed [O] = Not Completed\n\n"
-        comment = comment.format(**challenge_info)
+        comment = "# __{name}__\n\n".format(name=challenge.name)
+
+        # Add prerequitites section
+        for prerequisite in challenge.prerequisites.all():
+            try:
+                prerequisite_challenge = user.submission_set.get(challenge__name=prerequisite.name)
+                post_link = "https://anilist.co/forum/thread/{}/comment/{}".format(prerequisite_challenge.challenge.thread_id, prerequisite_challenge.comment_id)
+            except Exception as err:
+                post_link = "https://anilist.co/forum/thread/0000/comment/00000"
+
+                print(err)
+            
+            comment += "[{prerequisite_name}]({post_link}) Finish Date: {finish_date}\n".format(prerequisite_name=prerequisite.name,
+                                                                                       post_link=post_link,
+                                                                                       finish_date=request.POST.get('prerequisite-' + prerequisite.name + '-finish', 'DD/MM/YYYY').strip())
+
+        if challenge.prerequisites.count() > 0:
+            comment += '\n'
+        
+        # Dates
+        comment += "Challenge Start Date: {start}\nChallenge Finish Date: {finish}\nLegend: [X] = Completed [O] = Not Completed\n\n".format(start=request.POST.get('challenge-start', 'DD/MM/YYYY').strip(),
+                                                                                                                                            finish=request.POST.get('challenge-finish', 'DD/MM/YYYY').strip())
 
         reqs = Utils.split_by_key(reqs, 'mode')
 
@@ -261,6 +300,9 @@ class Utils(object):
                         comment = comment + 'B' + Utils.create_requirement_string(requirement)
                     else:
                         comment = comment + Utils.create_requirement_string(requirement)
+        elif category == Challenge.TIER:
+            for requirement in reqs[Requirement.DEFAULT]:
+                comment = comment + Utils.create_requirement_string(requirement)
         else:
             print("Not implemented...")
 
@@ -273,12 +315,31 @@ class Utils(object):
         lines = challenge_code.splitlines()
 
         challenge_name = re.search(r'# \_\_(.*)\_\_', lines[0].strip()).group(1)
-        
-        challenge = Challenge(name=challenge_name, thread_id=thread_id, category=category)
-        challenge.save()
 
+        if Challenge.objects.filter(name=challenge_name).exists():
+            return
+        
         req_start_index = [i for i, s in enumerate(lines) if "Legend: [X] = Completed [O] = Not Completed" in s][0]
 
+        prerequisite_lines = [line for line in lines[:req_start_index] if "Link to entry" in line]
+        prerequisites = {}
+
+        challenge = Challenge(name=challenge_name,
+                              thread_id=thread_id,
+                              category=category)
+        challenge.save()
+
+        print(challenge.prerequisites.all())
+        
+        for line in prerequisite_lines:
+            prerequisite_name = re.search(r'\[(.*)\]', line.strip()).group(1)
+            prerequisite_challenge = Challenge.objects.get(name__contains=prerequisite_name.split(' ')[0])
+            challenge.prerequisites.add(prerequisite_challenge)
+        
+        challenge.save()
+
+        print(challenge.prerequisites.all())
+        
         easy_index = -1
         normal_index = -1
         hard_index = -1
