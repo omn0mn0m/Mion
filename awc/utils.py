@@ -45,17 +45,18 @@ class Utils(object):
     @staticmethod
     def parse_challenge_code(submission, response):
         """Returns a dictionary of the challenge code information"""
-        
-        response_dict = json.loads(response)
-        
-        comment = response_dict['data']['ThreadComment'][0]['comment']
-
-        lines = comment.splitlines()
-
         parsed_comment = {}
         requirements = []
 
+        response_dict = json.loads(response)
+
+        comment = 'No comment found...'
+
         try:
+            comment = response_dict['data']['ThreadComment'][0]['comment']
+
+            lines = comment.splitlines()
+        
             req_start_index = [i for i, s in enumerate(lines) if "Legend: [X] = Completed [O] = Not Completed" in s][0]
 
             has_prerequisites = submission.challenge.prerequisites.exists()
@@ -63,7 +64,7 @@ class Utils(object):
             if has_prerequisites:
                 parsed_comment['prerequisites'] = {}
             
-            for line in lines[:req_start_index - 1]:
+            for line in lines[:req_start_index]:
                 if has_prerequisites:
                     prerequisite_challenge_name = re.search(r'\[(.*)\]', line)
                     prerequisite_finish_date_regex = re.search(r'\) Finish Date: (.*)', line)
@@ -76,10 +77,11 @@ class Utils(object):
                 if start_regex:
                     parsed_comment['start'] = start_regex.group(1)
                     
-                finish_regex = re.search(r'Finish Date: (.*)', line)
+                finish_regex = re.search(r'[a-zA-z]+\sFinish Date: (.*)', line)
                 
                 if finish_regex:
                     parsed_comment['finish'] = finish_regex.group(1)
+                    print(parsed_comment['finish'])
                 
             parsed_comment['category'] = submission.challenge.category
             parsed_comment['extra'] = ''
@@ -179,6 +181,8 @@ class Utils(object):
             parsed_comment['requirements'] = requirements
             parsed_comment['failed'] = False
         except Exception as e:
+            print(e)
+            
             parsed_comment = {
                 'failed': True,
                 'error': e,

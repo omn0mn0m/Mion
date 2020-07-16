@@ -8,14 +8,10 @@ from .utils import Utils
 
 from .forms import CreateChallengeForm, AddExistingSubmissionForm
 
-import requests
 import json
 import os
 
 from datetime import date
-
-ANILIST_API_URL = 'https://graphql.anilist.co'
-ANILIST_AUTH_URL = 'https://anilist.co/api/v2/oauth/token'
 
 anilist_client_id = os.environ.get('ANILIST_CLIENT_ID')
 anilist_client_secret = os.environ.get('ANILIST_CLIENT_SECRET')
@@ -32,7 +28,6 @@ def index(request):
             context['user'] = User.objects.get(name=request.session['user']['name'])
 
             context['user_genre_challenge_list'] = context['user'].submission_set.filter(challenge__category=Challenge.GENRE).order_by('challenge__name')
-            print(context['user_genre_challenge_list'])
             context['user_timed_challenge_list'] = context['user'].submission_set.filter(challenge__category=Challenge.TIMED).order_by('challenge__name')
             context['user_tier_challenge_list'] = context['user'].submission_set.filter(challenge__category=Challenge.TIER).order_by('challenge__name')
             context['user_collection_challenge_list'] = context['user'].submission_set.filter(challenge__category=Challenge.COLLECTION).order_by('challenge__name')
@@ -47,20 +42,6 @@ def index(request):
     
     if request.method == "POST":
         selected_challenges = request.POST.getlist('challenges[]')
-
-        headers = {
-            'Authorization': 'Bearer ' + request.session['access_token'],
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-        }
-
-        query = '''
-        mutation ($thread_id: Int, $comment: String) {
-          SaveThreadComment (threadId: $thread_id, comment: $comment) {
-            id,
-          }
-        }
-        '''
         
         for challenge_id in selected_challenges:
             if not Submission.objects.filter(user__name=request.session['user']['name'], challenge__id=challenge_id).exists():
@@ -97,9 +78,8 @@ def index(request):
                 }
 
                 # Make the HTTP Api request
-                response = requests.post(ANILIST_API_URL, json={'query': query, 'variables': variables}, headers=headers)
+                response_data = json.loads(anilist.post_authorised_query(request.session['access_token'], anilist.MAKE_POST_QUERY, variables))
 
-                response_data = json.loads(response.text)
                 context['comment_id'] = response_data['data']['SaveThreadComment']['id']
 
                 submission = Submission(user=User.objects.get(name=request.session['user']['name']),
@@ -141,20 +121,6 @@ def edit(request, challenge_name):
         try:
             filled_code = Utils.create_comment_string(request, challenge, context['user'])
 
-            headers = {
-                'Authorization': 'Bearer ' + request.session['access_token'],
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-            }
-
-            query = '''
-            mutation ($id: Int, $thread_id: Int, $comment: String) {
-              SaveThreadComment (id: $id, threadId: $thread_id, comment: $comment) {
-                id,
-              }
-            }
-            '''
-
             variables = {
                 'id': submission.comment_id,
                 'thread_id': challenge.thread_id,
@@ -162,21 +128,11 @@ def edit(request, challenge_name):
             }
 
             # Make the HTTP Api request
-            response = requests.post(ANILIST_API_URL, json={'query': query, 'variables': variables}, headers=headers)
+            response = anilist.post_authorised_query(request.session['access_token'], anilist.UPDATE_POST_QUERY, variables)
 
             return render(request, 'awc/edit.html', context)
         except Exception as err:
             print("Error: {}".format(err))
-
-    query = '''
-    query ($thread_id: Int, $comment_id: Int) {
-      ThreadComment (threadId: $thread_id, id: $comment_id) {
-        comment,
-        threadId,
-        id
-      }
-    }
-    '''
 
     # Define our query variables and values that will be used in the query request
     variables = {
@@ -185,9 +141,9 @@ def edit(request, challenge_name):
     }
 
     # Make the HTTP Api request
-    response = requests.post(ANILIST_API_URL, json={'query': query, 'variables': variables})
+    response = anilist.post_authorised_query(request.session['access_token'], anilist.GET_POST_QUERY, variables)
 
-    parsed_response = Utils.parse_challenge_code(submission, response.text)
+    parsed_response = Utils.parse_challenge_code(submission, response)
 
     context['submission'] = submission
     context['response'] = parsed_response
@@ -315,24 +271,9 @@ def profile_code(request):
     return render(request, 'awc/profile-code.html', context)
 
 def authenticate(request):
-    authorisation_code = request.GET.get('code', '')
+    response = anilist.authenticate(request.GET.get('code', ''), anilist_client_id, anilist_secret, anilist_redirect_uri)
 
-    headers = {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-    }
-
-    json_body = {
-        'grant_type': 'authorization_code',
-        'client_id': anilist_client_id,
-        'client_secret': anilist_client_secret,
-        'redirect_uri': anilist_redirect_uri,
-        'code': authorisation_code,
-    }
-
-    response = requests.post(ANILIST_AUTH_URL, json=json_body, headers=headers)
-
-    response_data = json.loads(response.text)
+    response_data = json.loads(response)
 
     # Manually save the session if changing an existing access token
     if 'access_token' in request.session:
@@ -342,31 +283,11 @@ def authenticate(request):
     else:
         request.session['access_token'] = response_data['access_token']
 
-    query = '''
-    query {
-      Viewer {
-        id,
-        name,
-        avatar {
-          medium,
-        },
-      }
-    }
-    '''
-
     # Define our query variables and values that will be used in the query request
     variables = {}
-
-    headers = {
-        'Authorization': 'Bearer ' + request.session['access_token'],
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-    }
-
+    
     # Make the HTTP Api request
-    response = requests.post(ANILIST_API_URL, json={'query': query, 'variables': variables}, headers=headers)
-
-    response_data = json.loads(response.text)
+    response_data = json.loads(anilist.post_authorised_query(request.session['access_token'], anilist.GET_USER_INFO_QUERY, variables))
     
     request.session['user'] = response_data['data']['Viewer']
 
@@ -385,20 +306,6 @@ def logout(request):
     return HttpResponseRedirect(reverse('awc:index'))
 
 def submit_post(request, challenge_name, thread_id, comment_id):
-    headers = {
-        'Authorization': 'Bearer ' + request.session['access_token'],
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-    }
-
-    query = '''
-    mutation ($thread_id: Int, $comment: String) {
-      SaveThreadComment (threadId: $thread_id, comment: $comment) {
-        id,
-      }
-    }
-    '''
-
     # Variables for the GraphQL query
     variables = {
         'thread_id': 4446,
@@ -408,8 +315,7 @@ def submit_post(request, challenge_name, thread_id, comment_id):
     }
     
     # Make the HTTP Api request
-    response = requests.post(ANILIST_API_URL, json={'query': query, 'variables': variables}, headers=headers)
-    response_data = json.loads(response.text)
+    response_data = json.loads(anilist.post_authorised_query(request.session['access_token'], anilist.MAKE_POST_QUERY, variables))
     
     submission = get_object_or_404(Submission, user__name=request.session['user']['name'], challenge__name=challenge_name)
     submission.submission_comment_id = response_data['data']['SaveThreadComment']['id']
@@ -419,29 +325,8 @@ def submit_post(request, challenge_name, thread_id, comment_id):
 
 def delete_post(request, comment_id, full_delete=False, is_submission=False):
     if full_delete:
-        headers = {
-            'Authorization': 'Bearer ' + request.session['access_token'],
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-        }
-
-        query = '''
-        mutation ($id: Int) {
-          DeleteThreadComment (id: $id) {
-            deleted,
-          }
-        }
-        '''
-
-        variables = {
-            'id': comment_id
-        }
-
         # Make the HTTP Api request
-        response = requests.post(ANILIST_API_URL, json={'query': query, 'variables': variables}, headers=headers)
-
-        response_data = json.loads(response.text)
-
+        response_data = json.loads(anilist.delete_post(comment_id))
 
     if (not full_delete) or response_data['data']['DeleteThreadComment']['deleted']:
         if is_submission:
