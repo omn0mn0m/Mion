@@ -1,0 +1,149 @@
+<div class="col-md p-3">
+  <form method="post">
+    {% csrf_token %}
+    
+    <div class="accordion" id="accordionExample">
+      <div class="card">
+	<div class="card-header" id="userHeadingOne">
+	  <h2 class="mb-0">
+            <button class="btn btn-link btn-block text-left" type="button" data-toggle="collapse" data-target="#userCollapseOne" aria-expanded="true" aria-controls="userCollapseOne">
+	      Timed Challenges
+            </button>
+	  </h2>
+	</div>
+	
+	<div id="userCollapseOne" class="collapse" aria-labelledby="userHeadingOne" data-parent="#accordionExample">
+	  <div class="card-body">
+	    <ul>
+	      {% for submission in user_timed_challenge_list %}
+	      <li><a href="{% url 'awc:edit' submission.challenge %}">{{ submission.challenge }}</a></li>
+	      {% empty %}
+	      <p>No challenges found.</p>
+	      {% endfor %}
+	    </ul>
+	  </div>
+	</div>
+      </div>
+      <div class="card">
+	<div class="card-header" id="userHeadingTwo">
+	  <h2 class="mb-0">
+            <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="#userCollapseTwo" aria-expanded="false" aria-controls="userCollapseTwo">
+	      Genre Challenges
+            </button>
+	  </h2>
+	</div>
+	<div id="userCollapseTwo" class="collapse" aria-labelledby="userHeadingTwo" data-parent="#accordionExample">
+	  <div class="card-body">
+	    <ul>
+	      {% for submission in user_genre_challenge_list %}
+	      <li><a href="{% url 'awc:edit' submission.challenge %}">{{ submission.challenge }}</a></li>
+	      {% empty %}
+	      <p>No challenges found.</p>
+	      {% endfor %}
+	    </ul>
+	  </div>
+	</div>
+      </div>
+      <div class="card">
+	<div class="card-header" id="userHeadingThree">
+	  <h2 class="mb-0">
+            <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="#userCollapseThree" aria-expanded="false" aria-controls="userCollapseThree">
+	      Tier Challenges
+            </button>
+	  </h2>
+	</div>
+	<div id="userCollapseThree" class="collapse" aria-labelledby="userHeadingThree" data-parent="#accordionExample">
+	  <div class="card-body">
+	    <ul>
+	      {% for submission in user_tier_challenge_list %}
+	      <li><a href="{% url 'awc:edit' submission.challenge %}">{{ submission.challenge }}</a></li>
+	      {% empty %}
+	      <p>No challenges found.</p>
+	      {% endfor %}
+	    </ul>
+	  </div>
+	</div>
+      </div>
+      <div class="card">
+	<div class="card-header" id="userHeadingFour">
+	  <h2 class="mb-0">
+            <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="#userCollapseFour" aria-expanded="false" aria-controls="userCollapseFour">
+	      Collection Challenges
+            </button>
+	  </h2>
+	</div>
+	<div id="userCollapseFour" class="collapse" aria-labelledby="userHeadingFour" data-parent="#accordionExample">
+	  <div class="card-body">
+	    <ul>
+	      {% for submission in user_collection_challenge_list %}
+	      <li><a href="{% url 'awc:edit' submission.challenge %}">{{ submission.challenge }}</a></li>
+	      {% empty %}
+	      <p>No challenges found.</p>
+	      {% endfor %}
+	    </ul>
+	  </div>
+	</div>
+      </div>
+      <div class="card">
+	<div class="card-header" id="userHeadingFive">
+	  <h2 class="mb-0">
+            <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="#userCollapseFive" aria-expanded="false" aria-controls="userCollapseFive">
+	      Classic Challenges
+            </button>
+	  </h2>
+	</div>
+	<div id="userCollapseFive" class="collapse" aria-labelledby="userHeadingFive" data-parent="#accordionExample">
+	  <div class="card-body">
+	    <ul>
+	      {% for submission in user_classic_challenge_list %}
+	      <li><a href="{% url 'awc:edit' submission.challenge %}">{{ submission.challenge }}</a></li>
+	      {% empty %}
+	      <p>No challenges found.</p>
+	      {% endfor %}
+	    </ul>
+	  </div>
+	</div>
+      </div>
+      <div class="card">
+	<div class="card-header" id="userHeadingSix">
+	  <h2 class="mb-0">
+            <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="#userCollapseSix" aria-expanded="false" aria-controls="userCollapseSix">
+	      Puzzle Challenges
+            </button>
+	  </h2>
+	</div>
+	<div id="userCollapseSix" class="collapse" aria-labelledby="userHeadingSix" data-parent="#accordionExample">
+	  <div class="card-body">
+	    <ul>
+	      {% for submission in user_puzzle_challenge_list %}
+	      <li><a href="{% url 'awc:edit' submission.challenge %}">{{ submission.challenge }}</a></li>
+	      {% empty %}
+	      <p>No challenges found.</p>
+	      {% endfor %}
+	    </ul>
+	  </div>
+	</div>
+      </div>
+      <div class="card">
+	<div class="card-header" id="userHeadingSeven">
+	  <h2 class="mb-0">
+            <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="#userCollapseSeven" aria-expanded="false" aria-controls="userCollapseSeven">
+	      Special Challenges
+            </button>
+	  </h2>
+	</div>
+	<div id="userCollapseSeven" class="collapse" aria-labelledby="userHeadingSeven" data-parent="#accordionExample">
+	  <div class="card-body">
+	    <ul>
+	      {% for submission in user_special_challenge_list %}
+	      <li><a href="{% url 'awc:edit' submission.challenge %}">{{ submission.challenge }}</a></li>
+	      {% empty %}
+	      <p>No challenges found.</p>
+	      {% endfor %}
+	    </ul>
+	  </div>
+	</div>
+      </div>
+    </div>
+  </form>  
+</div>

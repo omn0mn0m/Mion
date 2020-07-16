@@ -2,6 +2,7 @@ from django.http import Http404, HttpResponseRedirect
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 
+from .anilist import Anilist
 from .models import User, Submission, Challenge
 from .utils import Utils
 
@@ -20,6 +21,8 @@ anilist_client_id = os.environ.get('ANILIST_CLIENT_ID')
 anilist_client_secret = os.environ.get('ANILIST_CLIENT_SECRET')
 anilist_redirect_uri= os.environ.get('ANILIST_REDIRECT_URI')
 
+anilist = Anilist(anilist_client_id, anilist_client_secret, anilist_redirect_uri)
+
 # Create your views here.
 def index(request):
     context = {}
@@ -27,8 +30,17 @@ def index(request):
     if 'user' in request.session:
         try:
             context['user'] = User.objects.get(name=request.session['user']['name'])
-        except:
-            print("User not found...")
+
+            context['user_genre_challenge_list'] = context['user'].submission_set.filter(challenge__category=Challenge.GENRE).order_by('challenge__name')
+            print(context['user_genre_challenge_list'])
+            context['user_timed_challenge_list'] = context['user'].submission_set.filter(challenge__category=Challenge.TIMED).order_by('challenge__name')
+            context['user_tier_challenge_list'] = context['user'].submission_set.filter(challenge__category=Challenge.TIER).order_by('challenge__name')
+            context['user_collection_challenge_list'] = context['user'].submission_set.filter(challenge__category=Challenge.COLLECTION).order_by('challenge__name')
+            context['user_classic_challenge_list'] = context['user'].submission_set.filter(challenge__category=Challenge.CLASSIC).order_by('challenge__name')
+            context['user_puzzle_challenge_list'] = context['user'].submission_set.filter(challenge__category=Challenge.PUZZLE).order_by('challenge__name')
+            context['user_special_challenge_list'] = context['user'].submission_set.filter(challenge__category=Challenge.SPECIAL).order_by('challenge__name')
+        except Exception as err:
+            print(err)
     else:
         if 'user' in context:
             del context['user']
@@ -102,8 +114,6 @@ def index(request):
     context['classic_challenge_list'] = Challenge.objects.filter(category=Challenge.CLASSIC).order_by('name')
     context['puzzle_challenge_list'] = Challenge.objects.filter(category=Challenge.PUZZLE).order_by('name')
     context['special_challenge_list'] = Challenge.objects.filter(category=Challenge.SPECIAL).order_by('name')
-
-    
 
     context['anilist_redirect_uri'] = anilist_redirect_uri
     context['anilist_client_id'] = anilist_client_id
