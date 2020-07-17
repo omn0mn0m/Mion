@@ -52,6 +52,24 @@ class Anilist:
       }
     }
     '''
+
+    GET_USER_POSTS_QUERY = '''
+    query ($page_number: Int) {
+        Page(page: $page_number, perPage: 50) {
+            pageInfo {
+                total,
+                currentPage,
+                lastPage,
+                hasNextPage,
+                perPage
+            }
+            threadComments(userId: 403743) {
+                id,
+                threadId
+            }
+        }
+    }
+    '''
     
     def __init__(self, client_id, client_secret, redirect_uri):
         self.client_id = client_id
@@ -74,8 +92,14 @@ class Anilist:
 
         return requests.post(self.AUTH_URL, json=json_body, headers=headers).text
 
-    def post_query(self, variables):
-        pass
+    def post_query(self, query, variables):
+        headers = {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+        }
+
+        response = requests.post(self.API_URL, json={'query': query, 'variables': variables}, headers=headers)
+        return response.text
 
     def post_authorised_query(self, access_token, query, variables):
         headers = {
