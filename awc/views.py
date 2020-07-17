@@ -141,7 +141,7 @@ def edit(request, challenge_name):
     }
 
     # Make the HTTP Api request
-    response = anilist.post_authorised_query(request.session['access_token'], anilist.GET_POST_QUERY, variables)
+    response = anilist.post_query(anilist.GET_POST_QUERY, variables)
 
     parsed_response = Utils.parse_challenge_code(submission, response)
 
@@ -336,4 +336,43 @@ def delete_post(request, comment_id, full_delete=False, is_submission=False):
         else:
             Submission.objects.get(comment_id=comment_id).delete()
             
+    return HttpResponseRedirect(reverse('awc:index'))
+
+def scan(request):
+    page_number = 1
+    
+    while True:
+        # Variables for the GraphQL query
+        variables = {
+            'page_number': page_number
+        }
+    
+        # Make the HTTP Api request
+        response = json.loads(anilist.post_query(anilist.GET_USER_POSTS_QUERY, variables))
+        
+        thread_ids = set(comment['threadId'] for comment in response['data']['Page']['threadComments'])
+        
+        comments_by_thread = Utils.split_by_key(response['data']['Page']['threadComments'], 'threadId')
+    
+        for thread_id in thread_ids:
+            comments = comments_by_thread[thread_id]
+            
+            try:
+                challenge = Challenge.objects.get(thread_id=thread_id)
+                
+                if not Submission.objects.filter(user__name=request.session['user']['name'], challenge=challenge).exists():
+                    first_comment = min(comments, key=lambda x:x['id'])
+                    
+                    submission = Submission(user=User.objects.get(name=request.session['user']['name']),
+                                            challenge=challenge,
+                                            thread_id=thread_id,
+                                            comment_id=first_comment['id']).save()
+            except:
+                pass
+
+        if response['data']['Page']['pageInfo']['currentPage'] == response['data']['Page']['pageInfo']['lastPage']:
+            break
+        else:
+            page_number += 1
+    
     return HttpResponseRedirect(reverse('awc:index'))

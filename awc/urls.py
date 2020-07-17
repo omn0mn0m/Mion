@@ -18,4 +18,5 @@ urlpatterns = [
     path('submit-post/<str:challenge_name>/<int:thread_id>/<int:comment_id>/', views.submit_post, name='submit-post'),
     path('delete-post/<int:comment_id>/', views.delete_post, name='delete-post'),
     path('delete-post/<int:comment_id>/submission', views.delete_post, {'is_submission': True}, name='delete-submission'),
+    path('scan', views.scan, name='scan'),
 ]

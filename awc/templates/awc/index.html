@@ -14,7 +14,9 @@
     {% if user.name %}
     <div class="row">
       <div class="col-md pb-1">
-	<a class="btn btn-primary btn-block" href=''>Scan</a>
+	<form action="{% url 'awc:scan' %}" method='GET'>
+	  <input class="btn btn-primary btn-block" type="submit" value="Scan">
+	</form>
       </div>
       <div class="col-md pb-1">
 	<a class="btn btn-primary btn-block" href="{% url 'awc:add-existing-submission' %}">Add</a>
