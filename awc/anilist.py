@@ -54,7 +54,7 @@ class Anilist:
     '''
 
     GET_USER_POSTS_QUERY = '''
-    query ($page_number: Int) {
+    query ($page_number: Int, $user_id: Int) {
         Page(page: $page_number, perPage: 50) {
             pageInfo {
                 total,
@@ -63,7 +63,7 @@ class Anilist:
                 hasNextPage,
                 perPage
             }
-            threadComments(userId: 403743) {
+            threadComments(userId: $user_id) {
                 id,
                 threadId
             }
@@ -76,7 +76,7 @@ class Anilist:
         self.client_secret = client_secret
         self.redirect_uri = redirect_uri
 
-    def authenticate(self, authentication_code, client_id, client_secret, redirect_uri):
+    def authenticate(self, authorisation_code, client_id, client_secret, redirect_uri):
         headers = {
             'Content-Type': 'application/json',
             'Accept': 'application/json',

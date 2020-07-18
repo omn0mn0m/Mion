@@ -81,7 +81,6 @@ class Utils(object):
                 
                 if finish_regex:
                     parsed_comment['finish'] = finish_regex.group(1)
-                    print(parsed_comment['finish'])
                 
             parsed_comment['category'] = submission.challenge.category
             parsed_comment['extra'] = ''
@@ -332,8 +331,6 @@ class Utils(object):
                               thread_id=thread_id,
                               category=category)
         challenge.save()
-
-        print(challenge.prerequisites.all())
         
         for line in prerequisite_lines:
             prerequisite_name = re.search(r'\[(.*)\]', line.strip()).group(1)
