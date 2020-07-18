@@ -271,7 +271,7 @@ def profile_code(request):
     return render(request, 'awc/profile-code.html', context)
 
 def authenticate(request):
-    response = anilist.authenticate(request.GET.get('code', ''), anilist_client_id, anilist_secret, anilist_redirect_uri)
+    response = anilist.authenticate(request.GET.get('code', ''), anilist_client_id, anilist_client_secret, anilist_redirect_uri)
 
     response_data = json.loads(response)
 
@@ -344,7 +344,8 @@ def scan(request):
     while True:
         # Variables for the GraphQL query
         variables = {
-            'page_number': page_number
+            'page_number': page_number,
+            'user_id': User.objects.get(name=request.session['user']['name']).user_id
         }
     
         # Make the HTTP Api request
