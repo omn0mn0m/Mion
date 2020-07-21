@@ -31,3 +31,12 @@ The following environment variables should be set for the Anilist API:
 - ANILIST_REDIRECT_URI
 
 Environment variables can be set locally in a `.env` file in the root project directory. Environment variables can be set in production using `heroku config:set VARIABLE=VALUE`.
+
+## Testing
+To run the unit tests for this project, run the following command once before the first time you ever run a test:
+
+`docker-compose run web python manage.py collectstatic`
+
+For all tests, run:
+
+`docker-compose run web python manage.py test`

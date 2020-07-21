@@ -338,8 +338,6 @@ class Utils(object):
             challenge.prerequisites.add(prerequisite_challenge)
         
         challenge.save()
-
-        print(challenge.prerequisites.all())
         
         easy_index = -1
         normal_index = -1
