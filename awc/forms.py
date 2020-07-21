@@ -15,7 +15,7 @@ class CreateChallengeForm(forms.Form):
         """Cleans the thread_id value"""
         data = self.cleaned_data['thread_id']
 
-        if data < 0:
+        if data < 1:
             raise ValidationError(_("Invaid thread id - must be a positive value"))
 
         return data
@@ -46,7 +46,7 @@ class AddExistingSubmissionForm(forms.Form):
         """Cleans the thread_id value"""
         data = self.cleaned_data['comment_id']
 
-        if data < 0:
+        if data < 1:
             raise ValidationError(_("Invaid comment id - must be a positive value"))
 
         return data

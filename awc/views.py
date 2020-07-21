@@ -249,8 +249,8 @@ def profile_code(request):
         
         for post in current_posts:
             code += "[{}](https://anilist.co/forum/thread/{}/comment/{}) | ".format(post.challenge.name,
-                                                                              post.challenge.thread_id,
-                                                                              post.comment_id)
+                                                                                    post.challenge.thread_id,
+                                                                                    post.comment_id)
 
         code = code[:-2]
 
