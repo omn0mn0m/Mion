@@ -40,3 +40,6 @@ To run the unit tests for this project, run the following command once before th
 For all tests, run:
 
 `docker-compose run web python manage.py test`
+
+## Contributing
+TO DO
