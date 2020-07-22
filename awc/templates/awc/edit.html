@@ -87,10 +87,10 @@
     <input type="text" name="requirement-finish-bonus-{{ requirement.number }}" id="requirement-finish-bonus-{{ requirement.number }}" value={{ requirement.finish }}><br><br>
     
     <label for="requirement-anime-bonus-{{ requirement.number }}">Anime</label>
-    <input type="text" name="requirement-anime-bonus-{{ requirement.number }}" id="requirement-anime-bonus-{{ requirement.number }}" value="{{ requirement.anime }}">
+    <input type="text" name="requirement-anime-bonus-{{ requirement.number }}" id="requirement-anime-bonus-{{ requirement.number }}" value="{{ requirement.anime }}" {% if requirement.has_set_anime %}readonly{% endif %}>
     
     <label for="requirement-link-bonus-{{ requirement.number }}">Link</label>
-    <input type="text" name="requirement-link-bonus-{{ requirement.number }}" id="requirement-link-bonus-{{ requirement.number }}" value="{{ requirement.link }}"><br><br>
+    <input type="text" name="requirement-link-bonus-{{ requirement.number }}" id="requirement-link-bonus-{{ requirement.number }}" value="{{ requirement.link }}" {% if requirement.has_set_anime %}readonly{% endif %}><br><br>
     
     <label for="requirement-extra-bonus-{{ requirement.number }}">Extra</label>
     <textarea class="autoExpand" name="requirement-extra-bonus-{{ requirement.number }}" id="requirement-extra-bonus-{{ requirement.number }}" cols="100">{{ requirement.extra }}</textarea>
@@ -102,10 +102,10 @@
     <input type="text" name="requirement-finish-{{ requirement.number }}" id="requirement-finish-dates[]" value={{ requirement.finish }}><br><br>
 
     <label for="requirement-anime-{{ requirement.number }}">Anime</label>
-    <input type="text" name="requirement-anime-{{ requirement.number }}" id="anime-titles[]" value="{{ requirement.anime }}">
+    <input type="text" name="requirement-anime-{{ requirement.number }}" id="anime-titles[]" value="{{ requirement.anime }}" {% if requirement.has_set_anime %}readonly{% endif %}>
     
     <label for="requirement-link-{{ requirement.number }}">Link</label>
-    <input type="text" name="requirement-link-{{ requirement.number }}" id="anime-links[]" value="{{ requirement.link }}"><br><br>
+    <input type="text" name="requirement-link-{{ requirement.number }}" id="anime-links[]" value="{{ requirement.link }}" {% if requirement.has_set_anime %}readonly{% endif %}><br><br>
     
     <label for="requirement-extra-{{ requirement.number }}">Extra</label>
     <textarea class="autoExpand" name="requirement-extra-{{ requirement.number }}" id="requirement-extra-{{ requirement.number }}" cols="100">{{ requirement.extra }}</textarea>
