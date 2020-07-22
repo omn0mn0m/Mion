@@ -11,6 +11,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - name: Create .env file
+        run: |
+          touch .env
       - name: Build the stack
         run: |
           docker-compose up -d
