@@ -59,11 +59,9 @@ def index(request):
                     continue
 
                 # Sets up default challenge info
-                challenge_info = {}
-
-                challenge_info['name'] = challenge.name
-                challenge_info['start'] = date.today().strftime('%d/%m/%Y')
-                challenge_info['finish'] = 'DD/MM/YYYY'
+                post = request.POST.copy()
+                post['challenge-start'] = date.today().strftime('%d/%m/%Y')
+                request.POST = post
 
                 category = challenge.category
                 challenge_extra = challenge.extra
@@ -151,7 +149,6 @@ def edit(request, challenge_name):
     context['anilist_redirect_uri'] = anilist_redirect_uri
     context['anilist_client_id'] = anilist_client_id
     context['challenge'] = challenge
-    context['requirements'] = requirements
 
     if parsed_response['failed']:
         context['error_message'] = "Failed to parse your challenge code... Make sure that your comment follows the AWC challenge code format for this challenge."

@@ -64,6 +64,10 @@ class Requirement(models.Model):
 
     bonus = models.BooleanField(default=False)
 
+    # For challenges that require a specific anime
+    anime_title = models.CharField(max_length=100, blank=True, default='')
+    anime_link = models.CharField(max_length=50, blank=True, default='')
+
     def __str__(self):
         return "{} Requirement {}".format(self.challenge, self.number)
 
