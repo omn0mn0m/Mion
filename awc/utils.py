@@ -132,6 +132,8 @@ class Utils(object):
 
                         requirement['number'] = re.search(r'([0-9]+)[.\)]', line).group(1)
 
+                        req_from_db = submission.challenge.requirement_set.get(number=requirement['number'], bonus=bonus)
+
                         # Determine completed status
                         completed = re.search(r'\[[XO]\]', line).group()
 
@@ -148,11 +150,17 @@ class Utils(object):
                         requirement['text'] = submission.challenge.requirement_set.get(number=requirement['number'], bonus=bonus).text
 
                         # Determine the anime
-                        requirement['anime'] = re.search('\_\s\[(.*)\]\(https:\/\/anilist\.co\/anime\/[0-9\/]+\)', line).group(1)
-                        requirement['link'] = re.search(r'\((https:\/\/anilist\.co\/anime\/[0-9\/]+)\)', line).group(1)
+                        if req_from_db.anime_title:
+                            requirement['anime'] = req_from_db.anime_title
+                            requirement['link'] = req_from_db.anime_link
+                            requirement['has_set_anime'] = True
+                        else:
+                            requirement['anime'] = re.search('\_\s\[(.*)\]\(https:\/\/anilist\.co\/anime\/[0-9\/]+\)', line).group(1)
+                            requirement['link'] = re.search(r'\((https:\/\/anilist\.co\/anime\/[0-9\/]+)\)', line).group(1)
+                            requirement['has_set_anime'] = False
 
                         # Get extra stuff
-                        requirement['extra_newline'] = submission.challenge.requirement_set.get(number=requirement['number'], bonus=bonus).extra_newline
+                        requirement['extra_newline'] = req_from_db.extra_newline
 
                         if not requirement['extra_newline']:
                             requirement['extra'] = re.split('\_ \[.+\]\(https:\/\/anilist\.co\/anime\/[0-9\/]+\)', line)[1]
@@ -215,8 +223,15 @@ class Utils(object):
 
                 req['start'] = request.POST.get('requirement-start-bonus-{}'.format(requirement.number), "DD/MM/YYYY").strip()
                 req['finish'] = request.POST.get('requirement-finish-bonus-{}'.format(requirement.number), "DD/MM/YYYY").strip()
-                req['anime'] = request.POST.get('requirement-anime-bonus-{}'.format(requirement.number), "Anime Title").strip()
-                req['link'] = request.POST.get('requirement-link-bonus-{}'.format(requirement.number), "https://anilist.co/anime/00000/").strip()
+                
+                if requirement.anime_title:
+                    req['anime'] = requirement.anime_title
+                    req['link'] = requirement.anime_link
+                else:
+                    req['anime'] = request.POST.get('requirement-anime-bonus-{}'.format(requirement.number), "Anime Title").strip()
+                    req['link'] = request.POST.get('requirement-link-bonus-{}'.format(requirement.number), "https://anilist.co/anime/00000/").strip()
+
+                
                 req['extra'] = request.POST.get('requirement-extra-bonus-{}'.format(requirement.number), requirement.extra).strip()
             else:
                 req['mode'] = request.POST.get('mode-{}'.format(requirement.number), requirement.mode).strip()
@@ -228,8 +243,14 @@ class Utils(object):
 
                 req['start'] = request.POST.get('requirement-start-{}'.format(requirement.number), "DD/MM/YYYY").strip()
                 req['finish'] = request.POST.get('requirement-finish-{}'.format(requirement.number), "DD/MM/YYYY").strip()
-                req['anime'] = request.POST.get('requirement-anime-{}'.format(requirement.number), "Anime Title").strip()
-                req['link'] = request.POST.get('requirement-link-{}'.format(requirement.number), "https://anilist.co/anime/00000/").strip()
+
+                if requirement.anime_title:
+                    req['anime'] = requirement.anime_title
+                    req['link'] = requirement.anime_link
+                else:
+                    req['anime'] = request.POST.get('requirement-anime-{}'.format(requirement.number), "Anime Title").strip()
+                    req['link'] = request.POST.get('requirement-link-{}'.format(requirement.number), "https://anilist.co/anime/00000/").strip()
+                
                 req['extra'] = request.POST.get('requirement-extra-{}'.format(requirement.number), requirement.extra).strip()
 
             reqs.append(req)
@@ -306,6 +327,9 @@ class Utils(object):
         elif category == Challenge.TIER:
             for requirement in reqs[Requirement.DEFAULT]:
                 comment = comment + Utils.create_requirement_string(requirement)
+        elif category == Challenge.COLLECTION:
+            for requirement in reqs[Requirement.DEFAULT]:
+                comment = comment + Utils.create_requirement_string(requirement)
         else:
             print("Not implemented...")
 
@@ -321,8 +345,12 @@ class Utils(object):
 
         if Challenge.objects.filter(name=challenge_name).exists():
             return
-        
-        req_start_index = [i for i, s in enumerate(lines) if "Legend: [X] = Completed [O] = Not Completed" in s][0]
+
+        req_start_substrings = ["Legend: [X] = Completed [O] = Not Completed",
+                                "Legend: [X] = Complete [O] = Not Completed",
+                                "Legend: [X] = Completed [O] = Not Complete",
+                                "Legend: [X] = Complete [O] = Not Complete"]
+        req_start_index = [i for i, s in enumerate(lines) if any(substring in s for substring in req_start_substrings)][0]
 
         prerequisite_lines = [line for line in lines[:req_start_index] if "Link to entry" in line]
         prerequisites = {}
@@ -387,16 +415,35 @@ class Utils(object):
                     
                     # Determine requirement text
                     text_regex = re.search('\_\_(.*)\_\_', line)
+
+                    has_anime_title = False
                     
                     if text_regex != None:
                         text = text_regex.group(1)
                     else:
                         text = ' '
 
+                        # Collection challenges have no requirement text
+                        anime_title = re.search(r'Y \[(.*)\]\(', line).group(1)
+
+                        if anime_title != 'Anime Title':
+                            anime_link = re.search(r'\((.*)\)', line).group(1)
+                            has_anime_title = True
+
                     # Handles in-line extra info
-                    extra = re.split('\_ \[.+\]\(https:\/\/anilist\.co\/anime\/[0-9\/]+\)', line)[1]
+                    extra_split = re.split('\_ \[.+\]\(https:\/\/anilist\.co\/anime\/[0-9\/]+\)', line)
+
+                    if len(extra_split) > 1:
+                        extra = extra_split[1]
+                    else:
+                        extra = ''
                     
                     requirement = Requirement(number=num_search, mode=mode, challenge=challenge, text=text, extra=extra, bonus=bonus)
+
+                    if has_anime_title:
+                        requirement.anime_title = anime_title
+                        requirement.anime_link = anime_link
+                    
                     prev_requirement = requirement
                     requirement.save()
                 else:
