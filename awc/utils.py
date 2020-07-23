@@ -208,7 +208,7 @@ class Utils(object):
             if requirement.bonus:
                 req['mode'] = request.POST.get('mode-bonus-{}'.format(requirement.number), requirement.mode).strip()
 
-                if request.POST.get('completed-bonus-{}'.format(requirement.number), "off") == 'on':
+                if 'completed-bonus-{}'.format(requirement.number) in request.POST:
                     req['completed'] = 'X'
                 else:
                     req['completed'] = 'O'
@@ -221,7 +221,7 @@ class Utils(object):
             else:
                 req['mode'] = request.POST.get('mode-{}'.format(requirement.number), requirement.mode).strip()
 
-                if request.POST.get('completed-{}'.format(requirement.number), "off") == 'on':
+                if 'completed-{}'.format(requirement.number) in request.POST:
                     req['completed'] = 'X'
                 else:
                     req['completed'] = 'O'
