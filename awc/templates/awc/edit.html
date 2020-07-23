@@ -51,15 +51,9 @@
   
   <p>{{ requirement.text }}</p>
   
-  {% if requirement.bonus %}
-  <label for="completed-bonus-{{ requirement.number }}">Completed</label>
-  <input type="checkbox" name="completed-bonus-{{ requirement.number }}" id="completed-bonus-{{ requirement.number }}" {% if requirement.completed %}checked{% endif %}>
-
-  {% else %}
-  <label for="completed-{{ requirement.number }}">Completed</label>
-  <input type="checkbox" name="completed-bonus-{{ requirement.number }}" id="completed-bonus-{{ requirement.number }}" {% if requirement.completed %}checked{% endif %}>
-  {% endif %}
-
+  <label for="completed-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}">Completed</label>
+  <input type="checkbox" name="completed-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" id="completed-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" {% if requirement.completed %}checked{% endif %}>
+  
   {% if requirement.mode != "D" %}
   
   {% if requirement.bonus %}

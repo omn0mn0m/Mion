@@ -235,7 +235,7 @@ class Utils(object):
                 req['extra'] = request.POST.get('requirement-extra-bonus-{}'.format(requirement.number), requirement.extra).strip()
             else:
                 req['mode'] = request.POST.get('mode-{}'.format(requirement.number), requirement.mode).strip()
-
+                
                 if 'completed-{}'.format(requirement.number) in request.POST:
                     req['completed'] = 'X'
                 else:
@@ -328,6 +328,12 @@ class Utils(object):
             for requirement in reqs[Requirement.DEFAULT]:
                 comment = comment + Utils.create_requirement_string(requirement)
         elif category == Challenge.COLLECTION:
+            for requirement in reqs[Requirement.DEFAULT]:
+                comment = comment + Utils.create_requirement_string(requirement)
+        elif category == Challenge.PUZZLE:
+            for requirement in reqs[Requirement.DEFAULT]:
+                comment = comment + Utils.create_requirement_string(requirement)
+        elif category == Challenge.SPECIAL:
             for requirement in reqs[Requirement.DEFAULT]:
                 comment = comment + Utils.create_requirement_string(requirement)
         else:
