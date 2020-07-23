@@ -455,7 +455,7 @@ class Utils(object):
                 else:
                     # Handles new line extra info
                     if prev_requirement:
-                        if prev_requirement.extra.isspace():
+                        if prev_requirement.extra.isspace() or prev_requirement.extra == '':
                             prev_requirement.extra = line
                             prev_requirement.extra_newline = True
                         else:
