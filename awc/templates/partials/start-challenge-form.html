@@ -9,7 +9,7 @@
     {% csrf_token %}
     
     <button type="submit" class="btn btn-primary btn-block" id="start-selected" value="Submit">Start Selected</button>
-    <div class="accordion" id="accordionExample">
+    <div class="accordion" id="challengeAccordion">
       <div class="card">
 	<div class="card-header" id="headingOne">
 	  <h2 class="mb-0">
@@ -19,7 +19,7 @@
 	  </h2>
 	</div>
 	
-	<div id="collapseOne" class="collapse" aria-labelledby="headingOne" data-parent="#accordionExample">
+	<div id="collapseOne" class="collapse" aria-labelledby="headingOne" data-parent="#challengeAccordion">
 	  <div class="card-body">
 	    {% for challenge in timed_challenge_list %}
 	    <input type="checkbox" name="challenges[]" id="{{ challenge.name }}" value="{{ challenge.id }}">
@@ -38,7 +38,7 @@
             </button>
 	  </h2>
 	</div>
-	<div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionExample">
+	<div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#challengeAccordion">
 	  <div class="card-body">
 	    {% for challenge in genre_challenge_list %}
 	    <input type="checkbox" name="challenges[]" id="{{ challenge.name }}" value="{{ challenge.id }}">
@@ -57,7 +57,7 @@
             </button>
 	  </h2>
 	</div>
-	<div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordionExample">
+	<div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#challengeAccordion">
 	  <div class="card-body">
 	    {% for challenge in tier_challenge_list %}
 	    <input type="checkbox" name="challenges[]" id="{{ challenge.name }}" value="{{ challenge.id }}">
@@ -76,7 +76,7 @@
             </button>
 	  </h2>
 	</div>
-	<div id="collapseFour" class="collapse" aria-labelledby="headingFour" data-parent="#accordionExample">
+	<div id="collapseFour" class="collapse" aria-labelledby="headingFour" data-parent="#challengeAccordion">
 	  <div class="card-body">
 	    {% for challenge in collection_challenge_list %}
 	    <input type="checkbox" name="challenges[]" id="{{ challenge.name }}" value="{{ challenge.id }}">
@@ -95,7 +95,7 @@
             </button>
 	  </h2>
 	</div>
-	<div id="collapseFive" class="collapse" aria-labelledby="headingFive" data-parent="#accordionExample">
+	<div id="collapseFive" class="collapse" aria-labelledby="headingFive" data-parent="#challengeAccordion">
 	  <div class="card-body">
 	    {% for challenge in classic_challenge_list %}
 	    <input type="checkbox" name="challenges[]" id="{{ challenge.name }}" value="{{ challenge.id }}">
@@ -114,7 +114,7 @@
             </button>
 	  </h2>
 	</div>
-	<div id="collapseSix" class="collapse" aria-labelledby="headingSix" data-parent="#accordionExample">
+	<div id="collapseSix" class="collapse" aria-labelledby="headingSix" data-parent="#challengeAccordion">
 	  <div class="card-body">
 	    {% for challenge in puzzle_challenge_list %}
 	    <input type="checkbox" name="challenges[]" id="{{ challenge.name }}" value="{{ challenge.id }}">
@@ -133,7 +133,7 @@
             </button>
 	  </h2>
 	</div>
-	<div id="collapseSeven" class="collapse" aria-labelledby="headingSeven" data-parent="#accordionExample">
+	<div id="collapseSeven" class="collapse" aria-labelledby="headingSeven" data-parent="#challengeAccordion">
 	  <div class="card-body">
 	    {% for challenge in special_challenge_list %}
 	    <input type="checkbox" name="challenges[]" id="{{ challenge.name }}" value="{{ challenge.id }}">

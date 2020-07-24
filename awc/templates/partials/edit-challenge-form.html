@@ -2,7 +2,7 @@
   <form method="post">
     {% csrf_token %}
     
-    <div class="accordion" id="accordionExample">
+    <div class="accordion" id="userAccordion">
       <div class="card">
 	<div class="card-header" id="userHeadingOne">
 	  <h2 class="mb-0">
@@ -12,7 +12,7 @@
 	  </h2>
 	</div>
 	
-	<div id="userCollapseOne" class="collapse" aria-labelledby="userHeadingOne" data-parent="#accordionExample">
+	<div id="userCollapseOne" class="collapse" aria-labelledby="userHeadingOne" data-parent="#userAccordion">
 	  <div class="card-body">
 	    <ul>
 	      {% for submission in user_timed_challenge_list %}
@@ -32,7 +32,7 @@
             </button>
 	  </h2>
 	</div>
-	<div id="userCollapseTwo" class="collapse" aria-labelledby="userHeadingTwo" data-parent="#accordionExample">
+	<div id="userCollapseTwo" class="collapse" aria-labelledby="userHeadingTwo" data-parent="#userAccordion">
 	  <div class="card-body">
 	    <ul>
 	      {% for submission in user_genre_challenge_list %}
@@ -52,7 +52,7 @@
             </button>
 	  </h2>
 	</div>
-	<div id="userCollapseThree" class="collapse" aria-labelledby="userHeadingThree" data-parent="#accordionExample">
+	<div id="userCollapseThree" class="collapse" aria-labelledby="userHeadingThree" data-parent="#userAccordion">
 	  <div class="card-body">
 	    <ul>
 	      {% for submission in user_tier_challenge_list %}
@@ -72,7 +72,7 @@
             </button>
 	  </h2>
 	</div>
-	<div id="userCollapseFour" class="collapse" aria-labelledby="userHeadingFour" data-parent="#accordionExample">
+	<div id="userCollapseFour" class="collapse" aria-labelledby="userHeadingFour" data-parent="#userAccordion">
 	  <div class="card-body">
 	    <ul>
 	      {% for submission in user_collection_challenge_list %}
@@ -92,7 +92,7 @@
             </button>
 	  </h2>
 	</div>
-	<div id="userCollapseFive" class="collapse" aria-labelledby="userHeadingFive" data-parent="#accordionExample">
+	<div id="userCollapseFive" class="collapse" aria-labelledby="userHeadingFive" data-parent="#userAccordion">
 	  <div class="card-body">
 	    <ul>
 	      {% for submission in user_classic_challenge_list %}
@@ -112,7 +112,7 @@
             </button>
 	  </h2>
 	</div>
-	<div id="userCollapseSix" class="collapse" aria-labelledby="userHeadingSix" data-parent="#accordionExample">
+	<div id="userCollapseSix" class="collapse" aria-labelledby="userHeadingSix" data-parent="#userAccordion">
 	  <div class="card-body">
 	    <ul>
 	      {% for submission in user_puzzle_challenge_list %}
@@ -132,7 +132,7 @@
             </button>
 	  </h2>
 	</div>
-	<div id="userCollapseSeven" class="collapse" aria-labelledby="userHeadingSeven" data-parent="#accordionExample">
+	<div id="userCollapseSeven" class="collapse" aria-labelledby="userHeadingSeven" data-parent="#userAccordion">
 	  <div class="card-body">
 	    <ul>
 	      {% for submission in user_special_challenge_list %}
