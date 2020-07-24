@@ -162,10 +162,7 @@ class Utils(object):
                         # Get extra stuff
                         requirement['extra_newline'] = req_from_db.extra_newline
 
-                        if not requirement['extra_newline']:
-                            requirement['extra'] = re.split('\_ \[.+\]\(https:\/\/anilist\.co\/anime\/[0-9\/]+\)', line)[1]
-                        else:
-                            requirement['extra'] = ''
+                        requirement['extra'] = re.split('\_ \[.+\]\(https:\/\/anilist\.co\/anime\/[0-9\/]+\)', line)[1]
 
                         prev_requirement = requirement
                         requirements.append(requirement)
