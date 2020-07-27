@@ -32,6 +32,8 @@ class Challenge(models.Model):
 
     prerequisites = models.ManyToManyField('self', symmetrical=False)
 
+    allows_up_to_date = models.BooleanField(default=False)
+
     def __str__(self):
         return self.name
 

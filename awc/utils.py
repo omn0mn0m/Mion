@@ -1,7 +1,7 @@
-
 import json
 import re
 import collections
+import traceback
 
 from operator import itemgetter
 
@@ -57,7 +57,7 @@ class Utils(object):
 
             lines = comment.splitlines()
         
-            req_start_index = [i for i, s in enumerate(lines) if "Legend: [X] = Completed [O] = Not Completed" in s][0]
+            req_start_index = [i for i, s in enumerate(lines) if 'Legend' in s][0]
 
             has_prerequisites = submission.challenge.prerequisites.exists()
 
@@ -162,13 +162,19 @@ class Utils(object):
                         # Get extra stuff
                         requirement['extra_newline'] = req_from_db.extra_newline
 
-                        requirement['extra'] = re.split('\_ \[.+\]\(https:\/\/anilist\.co\/anime\/[0-9\/]+\)', line)[1]
+                        # Handles in-line extra info
+                        extra_regex = re.search(r'\(https:\/\/anilist\.co\/anime\/[0-9\/]+\)(.*)', line)
+
+                        if extra_regex != None:
+                            requirement['extra'] = extra_regex.group(1)
+                        else:
+                            requirement['extra'] = ''
 
                         prev_requirement = requirement
                         requirements.append(requirement)
                     else:
                         if prev_requirement:
-                            if prev_requirement['extra'].isspace():
+                            if prev_requirement['extra'].isspace() or prev_requirement['extra'] == '':
                                 prev_requirement['extra'] = line
                             else:
                                 prev_requirement['extra'] += ('\n' + line)
@@ -185,11 +191,9 @@ class Utils(object):
             parsed_comment['requirements'] = requirements
             parsed_comment['failed'] = False
         except Exception as e:
-            print(e)
-            
             parsed_comment = {
                 'failed': True,
-                'error': e,
+                'error': traceback.format_exc(),
                 'comment': comment,
             }
                 
@@ -277,9 +281,11 @@ class Utils(object):
 
         reqs = Utils.split_by_key(reqs, 'mode')
 
-        if category == Challenge.TIMED:
+        if category == Challenge.TIMED or category == Challenge.TIER or category == Challenge.COLLECTION or category == Challenge.PUZZLE or category == Challenge.SPECIAL:
             for requirement in reqs[Requirement.DEFAULT]:
                 comment = comment + Utils.create_requirement_string(requirement)
+        elif category == Challenge.CLASSIC:
+            pass
         elif category == Challenge.GENRE:
             if reqs[Requirement.EASY]:
                 comment = comment + "\n---\n__Mode: Easy__\n"
@@ -321,18 +327,6 @@ class Utils(object):
                         comment = comment + 'B' + Utils.create_requirement_string(requirement)
                     else:
                         comment = comment + Utils.create_requirement_string(requirement)
-        elif category == Challenge.TIER:
-            for requirement in reqs[Requirement.DEFAULT]:
-                comment = comment + Utils.create_requirement_string(requirement)
-        elif category == Challenge.COLLECTION:
-            for requirement in reqs[Requirement.DEFAULT]:
-                comment = comment + Utils.create_requirement_string(requirement)
-        elif category == Challenge.PUZZLE:
-            for requirement in reqs[Requirement.DEFAULT]:
-                comment = comment + Utils.create_requirement_string(requirement)
-        elif category == Challenge.SPECIAL:
-            for requirement in reqs[Requirement.DEFAULT]:
-                comment = comment + Utils.create_requirement_string(requirement)
         else:
             print("Not implemented...")
 
@@ -348,32 +342,29 @@ class Utils(object):
 
         if Challenge.objects.filter(name=challenge_name).exists():
             return
-
-        req_start_substrings = ["Legend: [X] = Completed [O] = Not Completed",
-                                "Legend: [X] = Complete [O] = Not Completed",
-                                "Legend: [X] = Completed [O] = Not Complete",
-                                "Legend: [X] = Complete [O] = Not Complete"]
-        req_start_index = [i for i, s in enumerate(lines) if any(substring in s for substring in req_start_substrings)][0]
-
-        prerequisite_lines = [line for line in lines[:req_start_index] if "Link to entry" in line]
-        prerequisites = {}
-
+        
         challenge = Challenge(name=challenge_name,
                               thread_id=thread_id,
                               category=category)
-        challenge.save()
+
         
-        for line in prerequisite_lines:
-            prerequisite_name = re.search(r'\[(.*)\]', line.strip()).group(1)
-            prerequisite_challenge = Challenge.objects.get(name__contains=prerequisite_name.split(' ')[0])
-            challenge.prerequisites.add(prerequisite_challenge)
         
         challenge.save()
         
-        easy_index = -1
-        normal_index = -1
-        hard_index = -1
-        bonus_index = -1
+        req_start_index = [i for i, s in enumerate(lines) if 'Legend' in s][0]
+
+        # Determines if the challenge has prerequisite challenges
+        prerequisite_lines = [line for line in lines[:req_start_index] if "Link to entry" in line]
+
+        if prerequisite_lines:
+            for line in prerequisite_lines:
+                prerequisite_name = re.search(r'\[(.*)\]', line.strip()).group(1)
+                prerequisite_challenge = Challenge.objects.get(name__contains=prerequisite_name.split(' ')[0])
+                challenge.prerequisites.add(prerequisite_challenge)
+
+            challenge.save()
+        
+        easy_index = normal_index = hard_index = bonus_index = -1
         
         prev_requirement = None
 
@@ -434,10 +425,10 @@ class Utils(object):
                             has_anime_title = True
 
                     # Handles in-line extra info
-                    extra_split = re.split('\_ \[.+\]\(https:\/\/anilist\.co\/anime\/[0-9\/]+\)', line)
+                    extra_regex = re.search(r'\(https:\/\/anilist\.co\/anime\/[0-9\/]+\)(.*)', line)
 
-                    if len(extra_split) > 1:
-                        extra = extra_split[1]
+                    if extra_regex != None:
+                        extra = extra_regex.group(1)
                     else:
                         extra = ''
                     
