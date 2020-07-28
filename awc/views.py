@@ -328,18 +328,24 @@ def submit_post(request, challenge_name, thread_id, comment_id):
     return HttpResponseRedirect(reverse('awc:index'))
 
 def delete_post(request, comment_id, full_delete=False, is_submission=False):
-    if full_delete:
-        # Make the HTTP Api request
-        response_data = json.loads(anilist.delete_post(comment_id))
-
-    if (not full_delete) or response_data['data']['DeleteThreadComment']['deleted']:
-        if is_submission:
-            submission = Submission.objects.get(submission_comment_id=comment_id)
-            submission.submission_comment_id = None
-            submission.save()
-        else:
-            Submission.objects.get(comment_id=comment_id).delete()
+    if 'user' in request.session:
+        try:
+            user = User.objects.get(name=request.session['user']['name'])
             
+            if full_delete:
+                # Make the HTTP Api request
+                response_data = json.loads(anilist.delete_post(comment_id))
+            
+            if (not full_delete) or response_data['data']['DeleteThreadComment']['deleted']:
+                if is_submission:
+                    submission = user.submission_set.get(comment_id=comment_id)
+                    submission.submission_comment_id = None
+                    submission.save()
+                else:
+                    user.submission_set.get(comment_id=comment_id).delete()
+        except Exception as err:
+            print(err)
+    
     return HttpResponseRedirect(reverse('awc:index'))
 
 def scan(request):
