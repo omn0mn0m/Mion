@@ -1,11 +1,55 @@
-
 import json
 import re
 import collections
+import traceback
 
 from operator import itemgetter
 
 from .models import Challenge, Requirement
+
+def get_extra(line):
+    extra = ''
+    
+    extra_regex = re.search(r'\(https:\/\/anilist\.co\/anime\/[0-9\/]+\)(.*)', line)
+    
+    if extra_regex != None:
+        extra = extra_regex.group(1)
+
+    return extra
+
+def get_requirement_mode(i, easy_index, normal_index, hard_index, bonus_index):
+    if bonus_index != -1 and i > bonus_index:
+        mode = Requirement.BONUS
+    elif hard_index != -1 and i > hard_index:
+        mode = Requirement.HARD
+    elif normal_index != -1 and i > normal_index:
+        mode = Requirement.NORMAL
+    elif easy_index != -1 and i > easy_index:
+        mode = Requirement.EASY
+    else:
+        mode = Requirement.DEFAULT
+
+    return mode
+
+class MockRequirement(object):
+    '''Non-functional requirement class for challenges without database requirements'''
+    
+    def __init__(self, number):
+        self.number = number
+        self.mode = Requirement.DEFAULT
+        self.text = ''
+        self.bonus = False
+        self.extra = ''
+        self.extra_newline = False
+        self.anime_title = ''
+        self.anime_list = ''
+
+class MockRequirementSet(list):
+    '''Non-functional requirements list class'''
+
+    def __init__(self, item_count):
+        for i in range(item_count):
+            self.append(MockRequirement(i + 1))
 
 class Utils(object):
 
@@ -25,15 +69,25 @@ class Utils(object):
     
     @staticmethod
     def create_requirement_string(requirement):
-        requirement_string = "{number}) [{completed}] Start: {start} Finish: {finish} __{text}__ [{anime}]({link})".format(
-            number=requirement['number'],
-            completed=requirement['completed'],
-            start=requirement['start'],
-            finish=requirement['finish'],
-            text=requirement['text'],
-            anime=requirement['anime'],
-            link=requirement['link'],
-        )
+        if requirement['text'] == '' or requirement['text'] == ' ':
+            requirement_string = "{number}) [{completed}] Start: {start} Finish: {finish} [{anime}]({link})".format(
+                number=requirement['number'],
+                completed=requirement['completed'],
+                start=requirement['start'],
+                finish=requirement['finish'],
+                anime=requirement['anime'],
+                link=requirement['link'],
+            )
+        else:
+            requirement_string = "{number}) [{completed}] Start: {start} Finish: {finish} __{text}__ [{anime}]({link})".format(
+                number=requirement['number'],
+                completed=requirement['completed'],
+                start=requirement['start'],
+                finish=requirement['finish'],
+                text=requirement['text'],
+                anime=requirement['anime'],
+                link=requirement['link'],
+            )
 
         if requirement['extra_newline']:
             requirement_string = requirement_string + '\n' + requirement['extra'] + '\n'
@@ -57,7 +111,7 @@ class Utils(object):
 
             lines = comment.splitlines()
         
-            req_start_index = [i for i, s in enumerate(lines) if "Legend: [X] = Completed [O] = Not Completed" in s][0]
+            req_start_index = [i for i, s in enumerate(lines) if 'Legend' in s][0]
 
             has_prerequisites = submission.challenge.prerequisites.exists()
 
@@ -85,10 +139,7 @@ class Utils(object):
             parsed_comment['category'] = submission.challenge.category
             parsed_comment['extra'] = ''
             
-            easy_index = -1
-            normal_index = -1
-            hard_index = -1
-            bonus_index = -1
+            easy_index = normal_index = hard_index = bonus_index = -1
 
             prev_requirement = {}
 
@@ -108,21 +159,7 @@ class Utils(object):
                 elif len(line) > 0:
                     requirement = {}
 
-                    # Modes are not used in for this challenge
-                    if easy_index == -1:
-                        requirement['mode'] = Requirement.DEFAULT
-                    # Modes are used in this challenge
-                    else:
-                        if bonus_index != -1 and i > bonus_index:
-                            requirement['mode'] = Requirement.BONUS
-                        elif hard_index != -1 and i > hard_index:
-                            requirement['mode'] = Requirement.HARD
-                        elif normal_index != -1 and i > normal_index:
-                            requirement['mode'] = Requirement.NORMAL
-                        elif easy_index != -1 and i > easy_index:
-                            requirement['mode'] = Requirement.EASY
-                        else:
-                            print("This should not have happened... Mode not registered")
+                    requirement['mode'] = get_requirement_mode(i, easy_index, normal_index, hard_index, bonus_index)
 
                     bonus = line[0] == 'B'
 
@@ -132,22 +169,20 @@ class Utils(object):
 
                         requirement['number'] = re.search(r'([0-9]+)[.\)]', line).group(1)
 
-                        req_from_db = submission.challenge.requirement_set.get(number=requirement['number'], bonus=bonus)
+                        if "Seasonal" in submission.challenge.name:
+                            req_from_db = MockRequirement(number=requirement['number'])
+                        else:
+                            req_from_db = submission.challenge.requirement_set.get(number=requirement['number'], bonus=bonus)
 
                         # Determine completed status
-                        completed = re.search(r'\[[XO]\]', line).group()
-
-                        if completed == '[X]':
-                            requirement['completed'] = True
-                        else:
-                            requirement['completed'] = False
+                        requirement['completed'] = re.search(r'\[([XOU])\]', line).group(1)
 
                         # Determine start and finish dates
                         requirement['start'] = re.search('Start: ([DMY0-9/]+)\s', line).group(1)
                         requirement['finish'] = re.search('Finish: ([DMY0-9/]+)', line).group(1)
 
                         # Determine requirement text
-                        requirement['text'] = submission.challenge.requirement_set.get(number=requirement['number'], bonus=bonus).text
+                        requirement['text'] = req_from_db.text
 
                         # Determine the anime
                         if req_from_db.anime_title:
@@ -155,20 +190,21 @@ class Utils(object):
                             requirement['link'] = req_from_db.anime_link
                             requirement['has_set_anime'] = True
                         else:
-                            requirement['anime'] = re.search('\_\s\[(.*)\]\(https:\/\/anilist\.co\/anime\/[0-9\/]+\)', line).group(1)
+                            requirement['anime'] = re.search('[MY\_]\s\[(.*)\]\(https:\/\/anilist\.co\/anime\/[0-9\/]+\)', line).group(1)
                             requirement['link'] = re.search(r'\((https:\/\/anilist\.co\/anime\/[0-9\/]+)\)', line).group(1)
                             requirement['has_set_anime'] = False
 
                         # Get extra stuff
                         requirement['extra_newline'] = req_from_db.extra_newline
 
-                        requirement['extra'] = re.split('\_ \[.+\]\(https:\/\/anilist\.co\/anime\/[0-9\/]+\)', line)[1]
+                        # Handles in-line extra info
+                        requirement['extra'] = get_extra(line)
 
                         prev_requirement = requirement
                         requirements.append(requirement)
                     else:
                         if prev_requirement:
-                            if prev_requirement['extra'].isspace():
+                            if prev_requirement['extra'].isspace() or prev_requirement['extra'] == '':
                                 prev_requirement['extra'] = line
                             else:
                                 prev_requirement['extra'] += ('\n' + line)
@@ -185,11 +221,9 @@ class Utils(object):
             parsed_comment['requirements'] = requirements
             parsed_comment['failed'] = False
         except Exception as e:
-            print(e)
-            
             parsed_comment = {
                 'failed': True,
-                'error': e,
+                'error': traceback.format_exc(),
                 'comment': comment,
             }
                 
@@ -202,7 +236,12 @@ class Utils(object):
             
         reqs = []
 
-        for requirement in challenge.requirement_set.all().order_by('id'):
+        if "Seasonal" in challenge.name:
+            requirements_list = MockRequirementSet(7)
+        else:
+            requirements_list = challenge.requirement_set.all().order_by('id')
+
+        for requirement in requirements_list:
             req = {}
 
             req['number'] = requirement.number
@@ -213,10 +252,7 @@ class Utils(object):
             if requirement.bonus:
                 req['mode'] = request.POST.get('mode-bonus-{}'.format(requirement.number), requirement.mode).strip()
 
-                if 'completed-bonus-{}'.format(requirement.number) in request.POST:
-                    req['completed'] = 'X'
-                else:
-                    req['completed'] = 'O'
+                req['completed'] = request.POST.get('completed-bonus-{}'.format(requirement.number), Requirement.NOT_COMPLETED).strip()
 
                 req['start'] = request.POST.get('requirement-start-bonus-{}'.format(requirement.number), "DD/MM/YYYY").strip()
                 req['finish'] = request.POST.get('requirement-finish-bonus-{}'.format(requirement.number), "DD/MM/YYYY").strip()
@@ -233,10 +269,7 @@ class Utils(object):
             else:
                 req['mode'] = request.POST.get('mode-{}'.format(requirement.number), requirement.mode).strip()
                 
-                if 'completed-{}'.format(requirement.number) in request.POST:
-                    req['completed'] = 'X'
-                else:
-                    req['completed'] = 'O'
+                req['completed'] = request.POST.get('completed-{}'.format(requirement.number), Requirement.NOT_COMPLETED).strip()
 
                 req['start'] = request.POST.get('requirement-start-{}'.format(requirement.number), "DD/MM/YYYY").strip()
                 req['finish'] = request.POST.get('requirement-finish-{}'.format(requirement.number), "DD/MM/YYYY").strip()
@@ -271,15 +304,21 @@ class Utils(object):
         if challenge.prerequisites.count() > 0:
             comment += '\n'
         
-        # Dates
-        comment += "Challenge Start Date: {start}\nChallenge Finish Date: {finish}\nLegend: [X] = Completed [O] = Not Completed\n\n".format(start=request.POST.get('challenge-start', 'DD/MM/YYYY').strip(),
+        # Dates Section
+        if challenge.allows_up_to_date:
+            comment += "Challenge Start Date: {start}\nChallenge Finish Date: {finish}\nLegend: [X] = Completed [O] = Not Completed [U] = Up-to-date\n\n".format(start=request.POST.get('challenge-start', 'DD/MM/YYYY').strip(),
+                                                                                                                                            finish=request.POST.get('challenge-finish', 'DD/MM/YYYY').strip())
+        else:
+            comment += "Challenge Start Date: {start}\nChallenge Finish Date: {finish}\nLegend: [X] = Completed [O] = Not Completed\n\n".format(start=request.POST.get('challenge-start', 'DD/MM/YYYY').strip(),
                                                                                                                                             finish=request.POST.get('challenge-finish', 'DD/MM/YYYY').strip())
 
         reqs = Utils.split_by_key(reqs, 'mode')
 
-        if category == Challenge.TIMED:
+        if category == Challenge.TIMED or category == Challenge.TIER or category == Challenge.COLLECTION or category == Challenge.PUZZLE or category == Challenge.SPECIAL:
             for requirement in reqs[Requirement.DEFAULT]:
                 comment = comment + Utils.create_requirement_string(requirement)
+        elif category == Challenge.CLASSIC:
+            pass
         elif category == Challenge.GENRE:
             if reqs[Requirement.EASY]:
                 comment = comment + "\n---\n__Mode: Easy__\n"
@@ -321,18 +360,6 @@ class Utils(object):
                         comment = comment + 'B' + Utils.create_requirement_string(requirement)
                     else:
                         comment = comment + Utils.create_requirement_string(requirement)
-        elif category == Challenge.TIER:
-            for requirement in reqs[Requirement.DEFAULT]:
-                comment = comment + Utils.create_requirement_string(requirement)
-        elif category == Challenge.COLLECTION:
-            for requirement in reqs[Requirement.DEFAULT]:
-                comment = comment + Utils.create_requirement_string(requirement)
-        elif category == Challenge.PUZZLE:
-            for requirement in reqs[Requirement.DEFAULT]:
-                comment = comment + Utils.create_requirement_string(requirement)
-        elif category == Challenge.SPECIAL:
-            for requirement in reqs[Requirement.DEFAULT]:
-                comment = comment + Utils.create_requirement_string(requirement)
         else:
             print("Not implemented...")
 
@@ -349,32 +376,38 @@ class Utils(object):
         if Challenge.objects.filter(name=challenge_name).exists():
             return
 
-        req_start_substrings = ["Legend: [X] = Completed [O] = Not Completed",
-                                "Legend: [X] = Complete [O] = Not Completed",
-                                "Legend: [X] = Completed [O] = Not Complete",
-                                "Legend: [X] = Complete [O] = Not Complete"]
-        req_start_index = [i for i, s in enumerate(lines) if any(substring in s for substring in req_start_substrings)][0]
-
-        prerequisite_lines = [line for line in lines[:req_start_index] if "Link to entry" in line]
-        prerequisites = {}
-
+        # Determines if the challenge allows "Up to Date" requirement status
+        needs_requirements = True
+        
+        if category == Challenge.TIMED:
+            if "Seasonal" in challenge_name:
+                allows_up_to_date = True
+                needs_requirements = False
+        else:
+            allows_up_to_date = False
+        
         challenge = Challenge(name=challenge_name,
                               thread_id=thread_id,
-                              category=category)
-        challenge.save()
-        
-        for line in prerequisite_lines:
-            prerequisite_name = re.search(r'\[(.*)\]', line.strip()).group(1)
-            prerequisite_challenge = Challenge.objects.get(name__contains=prerequisite_name.split(' ')[0])
-            challenge.prerequisites.add(prerequisite_challenge)
+                              category=category,
+                              allows_up_to_date=allows_up_to_date)
         
         challenge.save()
-        
-        easy_index = -1
-        normal_index = -1
-        hard_index = -1
-        bonus_index = -1
-        
+
+        req_start_index = [i for i, s in enumerate(lines) if 'Legend' in s][0]
+
+        # Determines if the challenge has prerequisite challenges
+        prerequisite_lines = [line for line in lines[:req_start_index] if "Link to entry" in line]
+
+        if prerequisite_lines:
+            for line in prerequisite_lines:
+                prerequisite_name = re.search(r'\[(.*)\]', line.strip()).group(1)
+                prerequisite_challenge = Challenge.objects.get(name__contains=prerequisite_name.split(' ')[0])
+                challenge.prerequisites.add(prerequisite_challenge)
+
+            challenge.save()
+
+        easy_index = normal_index = hard_index = bonus_index = -1
+
         prev_requirement = None
 
         for i, line in enumerate(lines[req_start_index + 2:]):
@@ -392,63 +425,45 @@ class Utils(object):
                 pass
             elif len(line) > 0:
                 requirement = {}
-                
-                # Modes are not used in for this challenge
-                if easy_index == -1:
-                    mode = Requirement.DEFAULT
-                # Modes are used in this challenge
-                else:
-                    if bonus_index != -1 and i > bonus_index:
-                        mode = Requirement.BONUS
-                    elif hard_index != -1 and i > hard_index:
-                        mode = Requirement.HARD
-                    elif normal_index != -1 and i > normal_index:
-                        mode = Requirement.NORMAL
-                    elif easy_index != -1 and i > easy_index:
-                        mode = Requirement.EASY
-                    else:
-                        print("This should not have happened... Mode not registered")
-                
+
+                mode = get_requirement_mode(i, easy_index, normal_index, hard_index, bonus_index)
+
                 bonus = line[0] == 'B'
-                
+
                 if line[0].isdigit() or bonus:
                     line = line.rstrip()
-                    
+
                     num_search = re.search(r'([0-9]+)[.\)]', line).group(1)
-                    
+
                     # Determine requirement text
                     text_regex = re.search('\_\_(.*)\_\_', line)
 
                     has_anime_title = False
-                    
+
                     if text_regex != None:
                         text = text_regex.group(1)
                     else:
                         text = ' '
 
-                        # Collection challenges have no requirement text
-                        anime_title = re.search(r'Y \[(.*)\]\(', line).group(1)
+                    anime_title = re.search('[MY\_]\s\[(.*)\]\(https:\/\/anilist\.co\/anime\/[0-9\/]+\)', line).group(1)
 
-                        if anime_title != 'Anime Title':
-                            anime_link = re.search(r'\((.*)\)', line).group(1)
-                            has_anime_title = True
+                    if anime_title != "Anime Title":
+                        anime_link = re.search(r'\((https:\/\/anilist\.co\/anime\/[0-9\/]+)\)', line).group(1)
+                        has_anime_title = True
 
                     # Handles in-line extra info
-                    extra_split = re.split('\_ \[.+\]\(https:\/\/anilist\.co\/anime\/[0-9\/]+\)', line)
+                    extra = get_extra(line)
 
-                    if len(extra_split) > 1:
-                        extra = extra_split[1]
-                    else:
-                        extra = ''
-                    
                     requirement = Requirement(number=num_search, mode=mode, challenge=challenge, text=text, extra=extra, bonus=bonus)
 
                     if has_anime_title:
                         requirement.anime_title = anime_title
                         requirement.anime_link = anime_link
-                    
+
                     prev_requirement = requirement
-                    requirement.save()
+
+                    if needs_requirements:
+                        requirement.save()
                 else:
                     # Handles new line extra info
                     if prev_requirement:
@@ -458,13 +473,14 @@ class Utils(object):
                         else:
                             prev_requirement.extra += ('\n' + line)
 
-                        prev_requirement.save()
+                        if needs_requirements:
+                            prev_requirement.save()
                     else:
                         if challenge.extra.isspace() or challenge.extra == '':
                             challenge.extra = line
                         else:
                             challenge.extra += '\n' + line
-                            
+
                         challenge.save()
             else:
                 prev_requirement = None

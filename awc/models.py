@@ -32,10 +32,13 @@ class Challenge(models.Model):
 
     prerequisites = models.ManyToManyField('self', symmetrical=False)
 
+    allows_up_to_date = models.BooleanField(default=False)
+
     def __str__(self):
         return self.name
 
 class Requirement(models.Model):
+    # Difficulty mode stuff
     DEFAULT = 'D'
     EASY = 'E'
     NORMAL = 'N'
@@ -49,7 +52,19 @@ class Requirement(models.Model):
         (HARD, 'Hard'),
         (BONUS, 'Bonus'),
     ]
-    
+
+    # Completed status stuff (doesn't get saved in database)
+    NOT_COMPLETED = 'O'
+    COMPLETED = 'X'
+    UP_TO_DATE = 'U'
+
+    COMPLETED_STATUS_CHOICES = [
+        (NOT_COMPLETED, 'Not Completed'),
+        (COMPLETED, 'Completed'),
+        (UP_TO_DATE, 'Up-to-date')
+    ]
+
+    # Fields
     challenge = models.ForeignKey(Challenge, on_delete=models.CASCADE)
 
     number = models.IntegerField()
