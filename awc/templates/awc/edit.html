@@ -52,7 +52,14 @@
   <p>{{ requirement.text }}</p>
   
   <label for="completed-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}">Completed</label>
-  <input type="checkbox" name="completed-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" id="completed-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" {% if requirement.completed %}checked{% endif %}>
+  <select name="completed-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" id="completed-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}">
+    <option value="O" {% if requirement.completed == "O" %}selected{% endif %}>Not Completed</option>
+    <option value="X" {% if requirement.completed == "X" %}selected{% endif %}>Completed</option>
+    {% if challenge.allows_up_to_date %}
+    <option value="U" {% if requirement.completed == "U" %}selected{% endif %}>Up-to-date</option>
+    {% endif %}
+  </select>
+  <!--<input type="checkbox" name="completed-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" id="completed-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" {% if requirement.completed %}checked{% endif %}>-->
   
   {% if requirement.mode != "D" %}
   

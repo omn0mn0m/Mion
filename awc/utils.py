@@ -17,6 +17,20 @@ def get_extra(line):
 
     return extra
 
+def get_requirement_mode(i, easy_index, normal_index, hard_index, bonus_index):
+    if bonus_index != -1 and i > bonus_index:
+        mode = Requirement.BONUS
+    elif hard_index != -1 and i > hard_index:
+        mode = Requirement.HARD
+    elif normal_index != -1 and i > normal_index:
+        mode = Requirement.NORMAL
+    elif easy_index != -1 and i > easy_index:
+        mode = Requirement.EASY
+    else:
+        mode = Requirement.DEFAULT
+
+    return mode
+
 class MockRequirement(object):
     '''Non-functional requirement class for challenges without database requirements'''
     
@@ -43,10 +57,6 @@ class Utils(object):
     MODE_EASY = "__Mode: Easy__"
     MODE_NORMAL = "__Mode: Normal__"
     MODE_HARD = "__Mode: Hard__"
-
-    SEASONAL_REQUIREMENTS = [
-        
-    ]
 
     @staticmethod
     def split_by_key(dict_list, key):
@@ -129,10 +139,7 @@ class Utils(object):
             parsed_comment['category'] = submission.challenge.category
             parsed_comment['extra'] = ''
             
-            easy_index = -1
-            normal_index = -1
-            hard_index = -1
-            bonus_index = -1
+            easy_index = normal_index = hard_index = bonus_index = -1
 
             prev_requirement = {}
 
@@ -152,21 +159,7 @@ class Utils(object):
                 elif len(line) > 0:
                     requirement = {}
 
-                    # Modes are not used in for this challenge
-                    if easy_index == -1:
-                        requirement['mode'] = Requirement.DEFAULT
-                    # Modes are used in this challenge
-                    else:
-                        if bonus_index != -1 and i > bonus_index:
-                            requirement['mode'] = Requirement.BONUS
-                        elif hard_index != -1 and i > hard_index:
-                            requirement['mode'] = Requirement.HARD
-                        elif normal_index != -1 and i > normal_index:
-                            requirement['mode'] = Requirement.NORMAL
-                        elif easy_index != -1 and i > easy_index:
-                            requirement['mode'] = Requirement.EASY
-                        else:
-                            print("This should not have happened... Mode not registered")
+                    requirement['mode'] = get_requirement_mode(i, easy_index, normal_index, hard_index, bonus_index)
 
                     bonus = line[0] == 'B'
 
@@ -182,12 +175,7 @@ class Utils(object):
                             req_from_db = submission.challenge.requirement_set.get(number=requirement['number'], bonus=bonus)
 
                         # Determine completed status
-                        completed = re.search(r'\[[XO]\]', line).group()
-
-                        if completed == '[X]':
-                            requirement['completed'] = True
-                        else:
-                            requirement['completed'] = False
+                        requirement['completed'] = re.search(r'\[([XOU])\]', line).group(1)
 
                         # Determine start and finish dates
                         requirement['start'] = re.search('Start: ([DMY0-9/]+)\s', line).group(1)
@@ -264,10 +252,7 @@ class Utils(object):
             if requirement.bonus:
                 req['mode'] = request.POST.get('mode-bonus-{}'.format(requirement.number), requirement.mode).strip()
 
-                if 'completed-bonus-{}'.format(requirement.number) in request.POST:
-                    req['completed'] = 'X'
-                else:
-                    req['completed'] = 'O'
+                req['completed'] = request.POST.get('completed-bonus-{}'.format(requirement.number), Requirement.NOT_COMPLETED).strip()
 
                 req['start'] = request.POST.get('requirement-start-bonus-{}'.format(requirement.number), "DD/MM/YYYY").strip()
                 req['finish'] = request.POST.get('requirement-finish-bonus-{}'.format(requirement.number), "DD/MM/YYYY").strip()
@@ -284,10 +269,7 @@ class Utils(object):
             else:
                 req['mode'] = request.POST.get('mode-{}'.format(requirement.number), requirement.mode).strip()
                 
-                if 'completed-{}'.format(requirement.number) in request.POST:
-                    req['completed'] = 'X'
-                else:
-                    req['completed'] = 'O'
+                req['completed'] = request.POST.get('completed-{}'.format(requirement.number), Requirement.NOT_COMPLETED).strip()
 
                 req['start'] = request.POST.get('requirement-start-{}'.format(requirement.number), "DD/MM/YYYY").strip()
                 req['finish'] = request.POST.get('requirement-finish-{}'.format(requirement.number), "DD/MM/YYYY").strip()
@@ -444,21 +426,7 @@ class Utils(object):
             elif len(line) > 0:
                 requirement = {}
 
-                # Modes are not used in for this challenge
-                if easy_index == -1:
-                    mode = Requirement.DEFAULT
-                # Modes are used in this challenge
-                else:
-                    if bonus_index != -1 and i > bonus_index:
-                        mode = Requirement.BONUS
-                    elif hard_index != -1 and i > hard_index:
-                        mode = Requirement.HARD
-                    elif normal_index != -1 and i > normal_index:
-                        mode = Requirement.NORMAL
-                    elif easy_index != -1 and i > easy_index:
-                        mode = Requirement.EASY
-                    else:
-                        print("This should not have happened... Mode not registered")
+                mode = get_requirement_mode(i, easy_index, normal_index, hard_index, bonus_index)
 
                 bonus = line[0] == 'B'
 
@@ -480,7 +448,7 @@ class Utils(object):
                     anime_title = re.search('[MY\_]\s\[(.*)\]\(https:\/\/anilist\.co\/anime\/[0-9\/]+\)', line).group(1)
 
                     if anime_title != "Anime Title":
-                        anime_link = re.search(r'\((.*)\)', line).group(1)
+                        anime_link = re.search(r'\((https:\/\/anilist\.co\/anime\/[0-9\/]+)\)', line).group(1)
                         has_anime_title = True
 
                     # Handles in-line extra info
