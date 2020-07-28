@@ -26,14 +26,6 @@ def index(request):
     if 'user' in request.session:
         try:
             context['user'] = User.objects.get(name=request.session['user']['name'])
-
-            context['user_genre_challenge_list'] = context['user'].submission_set.filter(challenge__category=Challenge.GENRE).order_by('challenge__name')
-            context['user_timed_challenge_list'] = context['user'].submission_set.filter(challenge__category=Challenge.TIMED).order_by('challenge__name')
-            context['user_tier_challenge_list'] = context['user'].submission_set.filter(challenge__category=Challenge.TIER).order_by('challenge__name')
-            context['user_collection_challenge_list'] = context['user'].submission_set.filter(challenge__category=Challenge.COLLECTION).order_by('challenge__name')
-            context['user_classic_challenge_list'] = context['user'].submission_set.filter(challenge__category=Challenge.CLASSIC).order_by('challenge__name')
-            context['user_puzzle_challenge_list'] = context['user'].submission_set.filter(challenge__category=Challenge.PUZZLE).order_by('challenge__name')
-            context['user_special_challenge_list'] = context['user'].submission_set.filter(challenge__category=Challenge.SPECIAL).order_by('challenge__name')
         except Exception as err:
             print(err)
     else:
@@ -84,15 +76,30 @@ def index(request):
                                         challenge=challenge,
                                         thread_id=challenge.thread_id,
                                         comment_id=context['comment_id']).save()
-            
-    context['genre_challenge_list'] = Challenge.objects.filter(category=Challenge.GENRE).exclude(id__in=context['user_genre_challenge_list'].values('challenge')).order_by('name')
-    context['timed_challenge_list'] = Challenge.objects.filter(category=Challenge.TIMED).exclude(id__in=context['user_timed_challenge_list'].values('challenge')).order_by('name')
-    context['tier_challenge_list'] = Challenge.objects.filter(category=Challenge.TIER).exclude(id__in=context['user_tier_challenge_list'].values('challenge')).order_by('name')
-    context['collection_challenge_list'] = Challenge.objects.filter(category=Challenge.COLLECTION).exclude(id__in=context['user_collection_challenge_list'].values('challenge')).order_by('name')
-    context['classic_challenge_list'] = Challenge.objects.filter(category=Challenge.CLASSIC).exclude(id__in=context['user_classic_challenge_list'].values('challenge')).order_by('name')
-    context['puzzle_challenge_list'] = Challenge.objects.filter(category=Challenge.PUZZLE).exclude(id__in=context['user_puzzle_challenge_list'].values('challenge')).order_by('name')
-    context['special_challenge_list'] = Challenge.objects.filter(category=Challenge.SPECIAL).exclude(id__in=context['user_special_challenge_list'].values('challenge')).order_by('name')
 
+    if 'user' in request.session:
+        try:
+            context['user_genre_challenge_list'] = context['user'].submission_set.filter(challenge__category=Challenge.GENRE).order_by('challenge__name')
+            context['user_timed_challenge_list'] = context['user'].submission_set.filter(challenge__category=Challenge.TIMED).order_by('challenge__name')
+            context['user_tier_challenge_list'] = context['user'].submission_set.filter(challenge__category=Challenge.TIER).order_by('challenge__name')
+            context['user_collection_challenge_list'] = context['user'].submission_set.filter(challenge__category=Challenge.COLLECTION).order_by('challenge__name')
+            context['user_classic_challenge_list'] = context['user'].submission_set.filter(challenge__category=Challenge.CLASSIC).order_by('challenge__name')
+            context['user_puzzle_challenge_list'] = context['user'].submission_set.filter(challenge__category=Challenge.PUZZLE).order_by('challenge__name')
+            context['user_special_challenge_list'] = context['user'].submission_set.filter(challenge__category=Challenge.SPECIAL).order_by('challenge__name')
+
+            context['genre_challenge_list'] = Challenge.objects.filter(category=Challenge.GENRE).exclude(id__in=context['user_genre_challenge_list'].values('challenge')).order_by('name')
+            context['timed_challenge_list'] = Challenge.objects.filter(category=Challenge.TIMED).exclude(id__in=context['user_timed_challenge_list'].values('challenge')).order_by('name')
+            context['tier_challenge_list'] = Challenge.objects.filter(category=Challenge.TIER).exclude(id__in=context['user_tier_challenge_list'].values('challenge')).order_by('name')
+            context['collection_challenge_list'] = Challenge.objects.filter(category=Challenge.COLLECTION).exclude(id__in=context['user_collection_challenge_list'].values('challenge')).order_by('name')
+            context['classic_challenge_list'] = Challenge.objects.filter(category=Challenge.CLASSIC).exclude(id__in=context['user_classic_challenge_list'].values('challenge')).order_by('name')
+            context['puzzle_challenge_list'] = Challenge.objects.filter(category=Challenge.PUZZLE).exclude(id__in=context['user_puzzle_challenge_list'].values('challenge')).order_by('name')
+            context['special_challenge_list'] = Challenge.objects.filter(category=Challenge.SPECIAL).exclude(id__in=context['user_special_challenge_list'].values('challenge')).order_by('name')
+        except Exception as err:
+            print(err)
+    else:
+        if 'user' in context:
+            del context['user']
+    
     context['anilist_redirect_uri'] = anilist_redirect_uri
     context['anilist_client_id'] = anilist_client_id
     
