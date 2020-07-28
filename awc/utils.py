@@ -379,12 +379,8 @@ class Utils(object):
         # Determines if the challenge allows "Up to Date" requirement status
         needs_requirements = True
         
-        if category == Challenge.TIMED:
-            if "Seasonal" in challenge_name:
-                allows_up_to_date = True
-                needs_requirements = False
-        else:
-            allows_up_to_date = False
+        req_start_index = [i for i, s in enumerate(lines) if 'Legend' in s][0]
+        allows_up_to_date = '[U]' in lines[req_start_index]
         
         challenge = Challenge(name=challenge_name,
                               thread_id=thread_id,
@@ -392,8 +388,6 @@ class Utils(object):
                               allows_up_to_date=allows_up_to_date)
         
         challenge.save()
-
-        req_start_index = [i for i, s in enumerate(lines) if 'Legend' in s][0]
 
         # Determines if the challenge has prerequisite challenges
         prerequisite_lines = [line for line in lines[:req_start_index] if "Link to entry" in line]
