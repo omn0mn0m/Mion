@@ -176,7 +176,10 @@ class Utils(object):
 
                         requirement['number'] = re.search(r'([0-9]+)[.\)]', line).group(1)
 
-                        req_from_db = submission.challenge.requirement_set.get(number=requirement['number'], bonus=bonus)
+                        if "Seasonal" in submission.challenge.name:
+                            req_from_db = MockRequirement(number=requirement['number'])
+                        else:
+                            req_from_db = submission.challenge.requirement_set.get(number=requirement['number'], bonus=bonus)
 
                         # Determine completed status
                         completed = re.search(r'\[[XO]\]', line).group()
@@ -191,7 +194,7 @@ class Utils(object):
                         requirement['finish'] = re.search('Finish: ([DMY0-9/]+)', line).group(1)
 
                         # Determine requirement text
-                        requirement['text'] = submission.challenge.requirement_set.get(number=requirement['number'], bonus=bonus).text
+                        requirement['text'] = req_from_db.text
 
                         # Determine the anime
                         if req_from_db.anime_title:
@@ -199,7 +202,7 @@ class Utils(object):
                             requirement['link'] = req_from_db.anime_link
                             requirement['has_set_anime'] = True
                         else:
-                            requirement['anime'] = re.search('\_\s\[(.*)\]\(https:\/\/anilist\.co\/anime\/[0-9\/]+\)', line).group(1)
+                            requirement['anime'] = re.search('[MY\_]\s\[(.*)\]\(https:\/\/anilist\.co\/anime\/[0-9\/]+\)', line).group(1)
                             requirement['link'] = re.search(r'\((https:\/\/anilist\.co\/anime\/[0-9\/]+)\)', line).group(1)
                             requirement['has_set_anime'] = False
 
@@ -247,8 +250,6 @@ class Utils(object):
 
         if "Seasonal" in challenge.name:
             requirements_list = MockRequirementSet(7)
-
-            print(requirements_list)
         else:
             requirements_list = challenge.requirement_set.all().order_by('id')
 
@@ -475,14 +476,12 @@ class Utils(object):
                         text = text_regex.group(1)
                     else:
                         text = ' '
-                        
-                        # Collection challenges have no requirement text
-                        if category == Challenge.COLLECTION:
-                            anime_title = re.search(r'[MY] \[(.*)\]\(', line).group(1)
-                            
-                            if anime_title != 'Anime Title':
-                                anime_link = re.search(r'\((.*)\)', line).group(1)
-                                has_anime_title = True
+
+                    anime_title = re.search('[MY\_]\s\[(.*)\]\(https:\/\/anilist\.co\/anime\/[0-9\/]+\)', line).group(1)
+
+                    if anime_title != "Anime Title":
+                        anime_link = re.search(r'\((.*)\)', line).group(1)
+                        has_anime_title = True
 
                     # Handles in-line extra info
                     extra = get_extra(line)
