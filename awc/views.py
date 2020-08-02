@@ -310,12 +310,21 @@ def logout(request):
     return HttpResponseRedirect(reverse('awc:index'))
 
 def submit_post(request, challenge_name, thread_id, comment_id):
+    # Handles submission difficulty comment
+    if request.POST.get('challenge-difficulty', ''):
+        comment = "{} ({}): https://anilist.co/forum/thread/{}/comment/{}".format(challenge_name,
+                                                                                  request.POST.get('challenge-difficulty', ''),
+                                                                                  thread_id,
+                                                                                  comment_id)
+    else:
+        comment = "{}: https://anilist.co/forum/thread/{}/comment/{}".format(challenge_name,
+                                                                             thread_id,
+                                                                             comment_id)
+    
     # Variables for the GraphQL query
     variables = {
         'thread_id': 4446,
-        'comment': "{}: https://anilist.co/forum/thread/{}/comment/{}".format(challenge_name,
-                                                                              thread_id,
-                                                                              comment_id),
+        'comment': comment,
     }
     
     # Make the HTTP Api request
