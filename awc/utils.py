@@ -171,6 +171,8 @@ class Utils(object):
 
                         if "Seasonal" in submission.challenge.name:
                             req_from_db = MockRequirement(number=requirement['number'])
+                        elif "Classic" in submission.challenge.name:
+                            req_from_db = MockRequirement(number=requirement['number'])
                         else:
                             req_from_db = submission.challenge.requirement_set.get(number=requirement['number'], bonus=bonus)
 
@@ -203,18 +205,19 @@ class Utils(object):
                         prev_requirement = requirement
                         requirements.append(requirement)
                     else:
-                        if prev_requirement:
-                            if prev_requirement['extra'].isspace() or prev_requirement['extra'] == '':
-                                prev_requirement['extra'] = line
-                            else:
-                                prev_requirement['extra'] += ('\n' + line)
+                        if not ("### __Winter" in line or "### __Spring" in line or "### __Summer" in line or "### __Fall" in line):
+                            if prev_requirement:
+                                if prev_requirement['extra'].isspace() or prev_requirement['extra'] == '':
+                                    prev_requirement['extra'] = line
+                                else:
+                                    prev_requirement['extra'] += ('\n' + line)
 
-                            requirements[requirements.index(prev_requirement)] = prev_requirement
-                        else:
-                            if parsed_comment['extra'].isspace() or parsed_comment['extra'] == '':
-                                parsed_comment['extra'] = line
+                                requirements[requirements.index(prev_requirement)] = prev_requirement
                             else:
-                                parsed_comment['extra'] += '\n' + line
+                                if parsed_comment['extra'].isspace() or parsed_comment['extra'] == '':
+                                    parsed_comment['extra'] = line
+                                else:
+                                    parsed_comment['extra'] += '\n' + line
                 else:
                     prev_requirement = None
 
@@ -238,6 +241,8 @@ class Utils(object):
 
         if "Seasonal" in challenge.name:
             requirements_list = MockRequirementSet(7)
+        elif "Classic" in challenge.name:
+            requirements_list = MockRequirementSet(40)
         else:
             requirements_list = challenge.requirement_set.all().order_by('id')
 
@@ -318,7 +323,19 @@ class Utils(object):
             for requirement in reqs[Requirement.DEFAULT]:
                 comment = comment + Utils.create_requirement_string(requirement)
         elif category == Challenge.CLASSIC:
-            pass
+            classic_year = re.search(r'([0-9]+)', challenge.name).group(1)
+            
+            for requirement in reqs[Requirement.DEFAULT]:
+                if requirement['number'] == 1:
+                    comment = comment + "### __Winter {}__\n".format(classic_year)
+                elif requirement['number'] == 11:
+                    comment = comment + "\n### __Spring {}__\n".format(classic_year)
+                elif requirement['number'] == 21:
+                    comment = comment + "\n### __Summer {}__\n".format(classic_year)
+                elif requirement['number'] == 31:
+                    comment = comment + "\n### __Fall {}__\n".format(classic_year)
+                    
+                comment = comment + Utils.create_requirement_string(requirement)
         elif category == Challenge.GENRE:
             if reqs[Requirement.EASY]:
                 comment = comment + "\n---\n__Mode: Easy__\n"
@@ -375,12 +392,6 @@ class Utils(object):
 
         if Challenge.objects.filter(name=challenge_name).exists():
             return
-
-        # Determines if the challenge allows "Up to Date" requirement status
-        if "Seasonal" in challenge_name:
-            needs_requirements = False
-        else:
-            needs_requirements = True
         
         req_start_index = [i for i, s in enumerate(lines) if 'Legend' in s][0]
 
@@ -391,6 +402,15 @@ class Utils(object):
                               thread_id=thread_id,
                               category=category,
                               allows_up_to_date=allows_up_to_date)
+
+        # Determines if the challenge has unique requirements
+        if "Seasonal" in challenge_name:
+            needs_requirements = False
+            challenge.extra = "Favourite (Optional): [Anime Title](https://anilist.co/anime/00000/)"
+        elif "Classic" in challenge_name:
+            needs_requirements = False
+        else:
+            needs_requirements = True
         
         challenge.save()
 
@@ -409,77 +429,76 @@ class Utils(object):
 
         prev_requirement = None
 
-        for i, line in enumerate(lines[req_start_index + 2:]):
-            line = line.lstrip()
+        if needs_requirements:
+            for i, line in enumerate(lines[req_start_index + 2:]):
+                line = line.lstrip()
 
-            if Utils.MODE_EASY in line:
-                easy_index = i
-            elif Utils.MODE_NORMAL in line:
-                normal_index = i
-            elif Utils.MODE_HARD in line:
-                hard_index = i
-            elif '__Bonus__' in line:
-                bonus_index = i
-            elif '---' in line:
-                pass
-            elif len(line) > 0:
-                requirement = {}
+                if Utils.MODE_EASY in line:
+                    easy_index = i
+                elif Utils.MODE_NORMAL in line:
+                    normal_index = i
+                elif Utils.MODE_HARD in line:
+                    hard_index = i
+                elif '__Bonus__' in line:
+                    bonus_index = i
+                elif '---' in line:
+                    pass
+                elif len(line) > 0:
+                    requirement = {}
 
-                mode = get_requirement_mode(i, easy_index, normal_index, hard_index, bonus_index)
+                    mode = get_requirement_mode(i, easy_index, normal_index, hard_index, bonus_index)
 
-                bonus = line[0] == 'B'
+                    bonus = line[0] == 'B'
 
-                if line[0].isdigit() or bonus:
-                    line = line.rstrip()
+                    if line[0].isdigit() or bonus:
+                        line = line.rstrip()
 
-                    num_search = re.search(r'([0-9]+)[.\)]', line).group(1)
+                        num_search = re.search(r'([0-9]+)[.\)]', line).group(1)
 
-                    # Determine requirement text
-                    text_regex = re.search('\_\_(.*)\_\_', line)
+                        # Determine requirement text
+                        text_regex = re.search('\_\_(.*)\_\_', line)
 
-                    has_anime_title = False
+                        has_anime_title = False
 
-                    if text_regex != None:
-                        text = text_regex.group(1)
-                    else:
-                        text = ' '
+                        if text_regex != None:
+                            text = text_regex.group(1)
+                        else:
+                            text = ' '
 
-                    anime_title = re.search('[MY\_]\s\[(.+?)\]\(https:\/\/anilist\.co\/anime\/[0-9\/]+\)', line).group(1)
+                        anime_title = re.search('[MY\_]\s\[(.+?)\]\(https:\/\/anilist\.co\/anime\/[0-9\/]+\)', line).group(1)
 
-                    if anime_title != "Anime Title":
-                        anime_link = re.search(r'\((https:\/\/anilist\.co\/anime\/[0-9\/]+)\)', line).group(1)
-                        has_anime_title = True
+                        if anime_title != "Anime Title":
+                            anime_link = re.search(r'\((https:\/\/anilist\.co\/anime\/[0-9\/]+)\)', line).group(1)
+                            has_anime_title = True
 
-                    # Handles in-line extra info
-                    extra = get_extra(line)
+                        # Handles in-line extra info
+                        extra = get_extra(line)
 
-                    requirement = Requirement(number=num_search, mode=mode, challenge=challenge, text=text, extra=extra, bonus=bonus)
+                        requirement = Requirement(number=num_search, mode=mode, challenge=challenge, text=text, extra=extra, bonus=bonus)
 
-                    if has_anime_title:
-                        requirement.anime_title = anime_title
-                        requirement.anime_link = anime_link
+                        if has_anime_title:
+                            requirement.anime_title = anime_title
+                            requirement.anime_link = anime_link
 
-                    prev_requirement = requirement
+                        prev_requirement = requirement
 
-                    if needs_requirements:
                         requirement.save()
-                else:
-                    # Handles new line extra info
-                    if prev_requirement:
-                        if prev_requirement.extra.isspace() or prev_requirement.extra == '':
-                            prev_requirement.extra = line
-                            prev_requirement.extra_newline = True
-                        else:
-                            prev_requirement.extra += ('\n' + line)
-
-                        if needs_requirements:
-                            prev_requirement.save()
                     else:
-                        if challenge.extra.isspace() or challenge.extra == '':
-                            challenge.extra = line
-                        else:
-                            challenge.extra += '\n' + line
+                        # Handles new line extra info
+                        if prev_requirement:
+                            if prev_requirement.extra.isspace() or prev_requirement.extra == '':
+                                prev_requirement.extra = line
+                                prev_requirement.extra_newline = True
+                            else:
+                                prev_requirement.extra += ('\n' + line)
 
-                        challenge.save()
-            else:
-                prev_requirement = None
+                            prev_requirement.save()
+                        else:
+                            if challenge.extra.isspace() or challenge.extra == '':
+                                challenge.extra = line
+                            else:
+                                challenge.extra += '\n' + line
+
+                            challenge.save()
+                else:
+                    prev_requirement = None
