@@ -377,9 +377,14 @@ class Utils(object):
             return
 
         # Determines if the challenge allows "Up to Date" requirement status
-        needs_requirements = True
+        if "Seasonal" in challenge_name:
+            needs_requirements = False
+        else:
+            needs_requirements = True
         
         req_start_index = [i for i, s in enumerate(lines) if 'Legend' in s][0]
+
+        # Determines if the challenge allows "Up to Date" requirement status
         allows_up_to_date = '[U]' in lines[req_start_index]
         
         challenge = Challenge(name=challenge_name,
