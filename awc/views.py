@@ -150,6 +150,20 @@ def edit(request, challenge_name):
 
     parsed_response = Utils.parse_challenge_code(submission, response)
 
+    anime_ids = []
+
+    for requirement in parsed_response['requirements']:
+        anime_ids.append(int(requirement['anime_id']))
+    
+    variables = {
+        'ids': anime_ids
+    }
+
+    anime = json.loads(anilist.post_authorised_query(request.session['access_token'], anilist.GET_ANIME_FROM_ID_QUERY, variables))
+
+    for i, requirement in enumerate(parsed_response['requirements']):
+        parsed_response['requirements'][i]['media'] = next(item for item in anime['data']['Page']['media'] if item['id'] == requirement['anime_id'])
+
     context['submission'] = submission
     context['response'] = parsed_response
     context['category'] = challenge.category
