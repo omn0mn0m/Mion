@@ -1,4 +1,4 @@
-from django.http import Http404, HttpResponseRedirect
+from django.http import Http404, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 
@@ -162,7 +162,10 @@ def edit(request, challenge_name):
     anime = json.loads(anilist.post_authorised_query(request.session['access_token'], anilist.GET_ANIME_FROM_ID_QUERY, variables))
 
     for i, requirement in enumerate(parsed_response['requirements']):
-        parsed_response['requirements'][i]['media'] = next(item for item in anime['data']['Page']['media'] if item['id'] == requirement['anime_id'])
+        media = next((item for item in anime['data']['Page']['media'] if item['id'] == requirement['anime_id']), None)
+
+        if media:
+            parsed_response['requirements'][i]['media'] = media
 
     context['submission'] = submission
     context['response'] = parsed_response
@@ -410,3 +413,12 @@ def scan(request):
             page_number += 1
     
     return HttpResponseRedirect(reverse('awc:index'))
+
+def search_anime(request):
+    variables = {
+        'search': request.POST.get("search_anime_title", "")
+    }
+
+    data = json.loads(anilist.post_authorised_query(request.session['access_token'], anilist.SEARCH_ANIME_QUERY, variables))
+    
+    return JsonResponse(data, safe=False)

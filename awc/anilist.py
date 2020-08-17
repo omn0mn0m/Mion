@@ -86,7 +86,46 @@ class Anilist:
                     userPreferred
                 },
                 coverImage {
-                    medium
+                    large
+                },
+                episodes,
+                mediaListEntry {
+                    id,
+                    status,
+                    progress,
+                    repeat,
+                    startedAt {
+                        year,
+                        month,
+                        day
+                    },
+                    completedAt {
+                        year,
+                        month,
+                        day
+                    }
+                }
+            }
+        }
+    }
+    '''
+
+    SEARCH_ANIME_QUERY = '''
+    query ($search: String) {
+        Page(page:1, perPage: 50) {
+            pageInfo {
+                currentPage
+                lastPage
+                hasNextPage
+                perPage
+            }
+            media(search: $search, type: ANIME) {
+                id,
+                title {
+                    userPreferred
+                },
+                coverImage {
+                    large
                 },
                 episodes,
                 mediaListEntry {
