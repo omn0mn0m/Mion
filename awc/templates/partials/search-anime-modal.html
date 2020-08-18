@@ -42,8 +42,6 @@
 
 		  {% if requirement.bonus %}
 		  card.attr('data-is-bonus', true);
-		  {% else %}
-		  card.attr('data-is-bonus', true);
 		  {% endif %}
 		  
 		  $('#search-results-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}').append(card);

@@ -169,8 +169,8 @@
   $(document).on("click", '#anime-search-result', function() {
       $('#' + $(this).attr('data-title-target')).find('a').text($(this).attr('data-title'))
       $('#' + $(this).attr('data-title-target')).find('a').attr('href', 'https://anilist.co/anime/' + $(this).attr('data-id'))
-
-      if ($(this).attr('data-is-bonus')) {
+      
+      if (this.hasAttribute('data-is-bonus')) {
 	  $('#requirement-anime-bonus-' + $(this).attr('data-requirement-number')).attr('value', $(this).attr('data-title'))
 	  $('#requirement-link-bonus-' + $(this).attr('data-requirement-number')).attr('value', 'https://anilist.co/anime/' + $(this).attr('data-id'))
       } else {
