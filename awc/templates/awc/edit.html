@@ -46,23 +46,11 @@
   <p>These requirements are automatically generated from a challenge code. The <a href="https://anilist.co/forum/thread/{{ challenge.thread_id  }}">full challenge post</a> should still be read through for information and reference.</p>
   
   {% for requirement in response.requirements %}
-  
-  <h3 id="{% if requirement.bonus %}bonus-{% endif %}requirement-{{ requirement.number}}">{% if requirement.bonus %}Bonus{% endif %} Requirement {{ requirement.number }}</h3>
-  
-  <p>{{ requirement.text }}</p>
-  
-  {% if requirement.mode != "D" %}
-  <label for="mode-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}">Difficulty Mode</label>
-  <select name="mode-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" id="mode-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}">
-    <option value="E" {% if requirement.mode == "E" %}selected{% endif %}>Easy</option>
-    <option value="N" {% if requirement.mode == "N" %}selected{% endif %}>Normal</option>
-    <option value="H" {% if requirement.mode == "H" %}selected{% endif %}>Hard</option>
-    <option value="B" {% if requirement.mode == "B" %}selected{% endif %}>Bonus</option>
-  </select>
-  <br><br>
-  {% endif %}
-  
   <div class="card">
+    <div class="card-header">
+      <h4>{% if requirement.bonus %}Bonus{% endif %} Requirement {{ requirement.number }}</h4>
+      <h6>{{ requirement.text }}</h6>
+    </div>
     <div class="card-body">
       <div class="row no-gutters">
 	<div class="col-md">
@@ -89,8 +77,7 @@
 	</div>
       </div>
       <div class="row no-gutters">
-	<div class="col-md">
-	  <label for="completed-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}">Completed</label>
+	<div class="col-md-3">
 	  <select name="completed-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" id="completed-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}">
 	    <option value="O" {% if requirement.completed == "O" %}selected{% endif %}>Not Completed</option>
 	    <option value="X" {% if requirement.completed == "X" %}selected{% endif %}>Completed</option>
@@ -99,20 +86,35 @@
 	    {% endif %}
 	  </select>
 	</div>
-	<div class="col-md">
+	<div class="col-md-3">
 	  <label for="requirement-start-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}">Start Date</label>
 	  <input type="text" style="width:120px" name="requirement-start-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" id="requirement-start-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" value={{ requirement.start }}>
 	</div>
-	<div class="col-md">
+	<div class="col-md-3">
 	  <label for="requirement-finish-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}">Finish Date</label>
 	  <input type="text" style="width:120px" name="requirement-finish-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" id="requirement-finish-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" value={{ requirement.finish }}>
 	</div>
+	<div class="col-md-3">
+	  {% if requirement.mode != "D" %}
+	  <label for="mode-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}">Difficulty Mode</label>
+	  <select name="mode-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" id="mode-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}">
+	    <option value="E" {% if requirement.mode == "E" %}selected{% endif %}>Easy</option>
+	    <option value="N" {% if requirement.mode == "N" %}selected{% endif %}>Normal</option>
+	    <option value="H" {% if requirement.mode == "H" %}selected{% endif %}>Hard</option>
+	    <option value="B" {% if requirement.mode == "B" %}selected{% endif %}>Bonus</option>
+	  </select>
+	  <br><br>
+	  {% endif %}
+	</div>
+      </div>
+      <div class="row no-gutters">
+	<textarea class="autoExpand" name="requirement-extra-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" id="requirement-extra-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" style="width:100%" placeholder="Extra">{{ requirement.extra }}</textarea>
       </div>
     </div>
   </div>
   <br>
 
-  <textarea class="autoExpand" name="requirement-extra-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" id="requirement-extra-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" cols="100" placeholder="Extra">{{ requirement.extra }}</textarea>
+  
   {% endfor %}
   
   <br><br>
