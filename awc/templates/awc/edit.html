@@ -47,82 +47,79 @@
   
   {% for requirement in response.requirements %}
   
-  {% if requirement.bonus %}
-  <h2 id="requirement-{{ requirement.number}}">Bonus Requirement {{ requirement.number }}</h2>
-  {% else %}
-  <h2 id="bonus-requirement-{{ requirement.number}}">Requirement {{ requirement.number }}</h2>
-  {% endif %}
+  <h3 id="{% if requirement.bonus %}bonus-{% endif %}requirement-{{ requirement.number}}">{% if requirement.bonus %}Bonus{% endif %} Requirement {{ requirement.number }}</h3>
   
   <p>{{ requirement.text }}</p>
   
-  <label for="completed-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}">Completed</label>
-  <select name="completed-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" id="completed-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}">
-    <option value="O" {% if requirement.completed == "O" %}selected{% endif %}>Not Completed</option>
-    <option value="X" {% if requirement.completed == "X" %}selected{% endif %}>Completed</option>
-    {% if challenge.allows_up_to_date %}
-    <option value="U" {% if requirement.completed == "U" %}selected{% endif %}>Up-to-date</option>
-    {% endif %}
-  </select>
-  <!--<input type="checkbox" name="completed-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" id="completed-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" {% if requirement.completed %}checked{% endif %}>-->
-  
   {% if requirement.mode != "D" %}
+  <label for="mode-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}">Difficulty Mode</label>
+  <select name="mode-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" id="mode-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}">
+    <option value="E" {% if requirement.mode == "E" %}selected{% endif %}>Easy</option>
+    <option value="N" {% if requirement.mode == "N" %}selected{% endif %}>Normal</option>
+    <option value="H" {% if requirement.mode == "H" %}selected{% endif %}>Hard</option>
+    <option value="B" {% if requirement.mode == "B" %}selected{% endif %}>Bonus</option>
+  </select>
+  <br><br>
+  {% endif %}
   
-  {% if requirement.bonus %}
-  <label for="mode-bonus-{{ requirement.number }}">Difficulty Mode</label>
-  <select name="mode-bonus-{{ requirement.number }}" id="mode-bonus-{{ requirement.number }}">
-    {% else %}
-    <label for="mode-{{ requirement.number }}">Difficulty Mode</label>
-    <select name="mode-{{ requirement.number }}" id="mode-{{ requirement.number }}">
-      {% endif %}
-      
-      <option value="E" {% if requirement.mode == "E" %}selected{% endif %}>Easy</option>
-      <option value="N" {% if requirement.mode == "N" %}selected{% endif %}>Normal</option>
-      <option value="H" {% if requirement.mode == "H" %}selected{% endif %}>Hard</option>
-      <option value="B" {% if requirement.mode == "B" %}selected{% endif %}>Bonus</option>
-    </select>
-    {% endif %} 
-    
-    <br><br>
-    
-    {% if requirement.bonus %}
-    <label for="requirement-start-bonus-{{ requirement.number }}">Start Date</label>
-    <input type="text" name="requirement-start-bonus-{{ requirement.number }}" id="requirement-start-bonus-{{ requirement.number }}" value={{ requirement.start }}>
-    
-    <label for="requirement-finish-bonus-{{ requirement.number }}">Finish Date</label>
-    <input type="text" name="requirement-finish-bonus-{{ requirement.number }}" id="requirement-finish-bonus-{{ requirement.number }}" value={{ requirement.finish }}><br><br>
-    
-    <label for="requirement-anime-bonus-{{ requirement.number }}">Anime</label>
-    <input type="text" name="requirement-anime-bonus-{{ requirement.number }}" id="requirement-anime-bonus-{{ requirement.number }}" value="{{ requirement.anime }}" {% if requirement.has_set_anime %}readonly{% endif %}>
-    
-    <label for="requirement-link-bonus-{{ requirement.number }}">Link</label>
-    <input type="text" name="requirement-link-bonus-{{ requirement.number }}" id="requirement-link-bonus-{{ requirement.number }}" value="{{ requirement.link }}" {% if requirement.has_set_anime %}readonly{% endif %}><br><br>
-    
-    <label for="requirement-extra-bonus-{{ requirement.number }}">Extra</label>
-    <textarea class="autoExpand" name="requirement-extra-bonus-{{ requirement.number }}" id="requirement-extra-bonus-{{ requirement.number }}" cols="100">{{ requirement.extra }}</textarea>
-    {% else %}
-    <label for="requirement-start-{{ requirement.number }}">Start Date</label>
-    <input type="text" name="requirement-start-{{ requirement.number }}" id="requirement-start-dates[]" value={{ requirement.start }}>
-    
-    <label for="requirement-finish-{{ requirement.number }}">Finish Date</label>
-    <input type="text" name="requirement-finish-{{ requirement.number }}" id="requirement-finish-dates[]" value={{ requirement.finish }}><br><br>
+  <div class="card">
+    <div class="card-body">
+      <div class="row no-gutters">
+	<div class="col-md">
+	  {% if requirement.media %}
+	  <h4 class="card-title" name="requirement-title-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" id="requirement-title-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}"><a href="{{ requirement.link }}" target="_blank" id="requirement-title-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}">{{ requirement.media.title.userPreferred }}</a></h4>
 
-    <label for="requirement-anime-{{ requirement.number }}">Anime</label>
-    <input type="text" name="requirement-anime-{{ requirement.number }}" id="anime-titles[]" value="{{ requirement.anime }}" {% if requirement.has_set_anime %}readonly{% endif %}>
+	  <input type="hidden" name="requirement-anime-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" id="requirement-anime-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" value="{{ requirement.media.title.userPreferred }}">
+	  <input type="hidden" name="requirement-link-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" id="requirement-link-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" value="{{ requirement.link }}">
+	  {% else %}
+	  <h4 class="card-title" name="requirement-title-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" id="requirement-title-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}"><a href="https://anilist.co/anime/00000" target="_blank" id="requirement-title-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}">Anime Title</a></h4>
+
+	  <input type="hidden" name="requirement-anime-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" id="requirement-anime-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" value="Anime Title">
+	  <input type="hidden" name="requirement-link-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" id="requirement-link-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" value="https://anilist.co/anime/00000">
+	  {% endif %}
+	</div>
+	<div class="col-md text-right">
+	  <a class="card-link" href="#anime-search-modal-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" data-toggle="modal">Change Anime</a>
+
+	  {% if requirement.bonus %}
+	  {% include "../partials/search-anime-modal.html" with title_id="requirement-title-bonus-"|add:requirement.number %}
+	  {% else %}
+	  {% include "../partials/search-anime-modal.html" with title_id="requirement-title-"|add:requirement.number %}
+	  {% endif %}
+	</div>
+      </div>
+      <div class="row no-gutters">
+	<div class="col-md">
+	  <label for="completed-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}">Completed</label>
+	  <select name="completed-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" id="completed-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}">
+	    <option value="O" {% if requirement.completed == "O" %}selected{% endif %}>Not Completed</option>
+	    <option value="X" {% if requirement.completed == "X" %}selected{% endif %}>Completed</option>
+	    {% if challenge.allows_up_to_date %}
+	    <option value="U" {% if requirement.completed == "U" %}selected{% endif %}>Up-to-date</option>
+	    {% endif %}
+	  </select>
+	</div>
+	<div class="col-md">
+	  <label for="requirement-start-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}">Start Date</label>
+	  <input type="text" style="width:120px" name="requirement-start-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" id="requirement-start-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" value={{ requirement.start }}>
+	</div>
+	<div class="col-md">
+	  <label for="requirement-finish-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}">Finish Date</label>
+	  <input type="text" style="width:120px" name="requirement-finish-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" id="requirement-finish-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" value={{ requirement.finish }}>
+	</div>
+      </div>
+    </div>
+  </div>
+  <br>
+
+  <textarea class="autoExpand" name="requirement-extra-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" id="requirement-extra-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" cols="100" placeholder="Extra">{{ requirement.extra }}</textarea>
+  {% endfor %}
+  
+  <br><br>
     
-    <label for="requirement-link-{{ requirement.number }}">Link</label>
-    <input type="text" name="requirement-link-{{ requirement.number }}" id="anime-links[]" value="{{ requirement.link }}" {% if requirement.has_set_anime %}readonly{% endif %}><br><br>
-    
-    <label for="requirement-extra-{{ requirement.number }}">Extra</label>
-    <textarea class="autoExpand" name="requirement-extra-{{ requirement.number }}" id="requirement-extra-{{ requirement.number }}" cols="100">{{ requirement.extra }}</textarea>
-    {% endif %}
-    
-    {% endfor %}
-    
-    <br><br>
-    
-    <p>These requirements are automatically generated from a challenge code. The <a href="https://anilist.co/forum/thread/{{ challenge.thread_id  }}">full challenge post</a> should still be read through for information and reference.</p>
-    
-    <input class="btn btn-primary" type="submit" value="Update Challenge">
+  <p>These requirements are automatically generated from a challenge code. The <a href="https://anilist.co/forum/thread/{{ challenge.thread_id  }}">full challenge post</a> should still be read through for information and reference.</p>
+  
+  <input class="btn btn-primary" type="submit" value="Update Challenge">
 </form>
 </p>
 
@@ -169,6 +166,20 @@
 
 {% block javascript %}
 <script>
+  $(document).on("click", '#anime-search-result', function() {
+      $('#' + $(this).attr('data-title-target')).find('a').text($(this).attr('data-title'))
+      $('#' + $(this).attr('data-title-target')).find('a').attr('href', 'https://anilist.co/anime/' + $(this).attr('data-id'))
+      
+      if (this.hasAttribute('data-is-bonus')) {
+	  $('#requirement-anime-bonus-' + $(this).attr('data-requirement-number')).attr('value', $(this).attr('data-title'))
+	  $('#requirement-link-bonus-' + $(this).attr('data-requirement-number')).attr('value', 'https://anilist.co/anime/' + $(this).attr('data-id'))
+      } else {
+	  $('#requirement-anime-' + $(this).attr('data-requirement-number')).attr('value', $(this).attr('data-title'))
+	  $('#requirement-link-' + $(this).attr('data-requirement-number')).attr('value', 'https://anilist.co/anime/' + $(this).attr('data-id'))
+      }
+      $('.modal').modal('hide');
+  });
+  
   function checkCompleted() {
       var valid = true;
 
@@ -226,6 +237,5 @@
 
       return valid;
   }
-  
 </script>
 {% endblock %}

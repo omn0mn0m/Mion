@@ -1,0 +1,65 @@
+<div class="modal fade" id="anime-search-modal-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" tabindex="-1" role="dialog" aria-labelledby="anime-search-modal-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}-label" aria-hidden="true">
+  <div class="modal-dialog modal-xl" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="searchModalLabel">Search for Anime</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+	<div class="row">
+          <input type="text" name="search-anime-title-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" id="search-anime-title-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" placeholder="Anime Title...">
+	  <button type="button" class="btn btn-primary" onclick="searchAnime{% if requirement.bonus %}Bonus{% endif %}{{ requirement.number }}()">Search</button>
+	</div>
+	<div class="row" id="search-results-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}">
+	  
+	</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function searchAnime{% if requirement.bonus %}Bonus{% endif %}{{ requirement.number }}() {
+      $.ajax({
+	  url: '{% url 'awc:search-anime' %}',
+	  type: 'POST',
+	  dataType: 'json',
+	  data: {
+	      csrfmiddlewaretoken: '{{ csrf_token }}',
+	      'search_anime_title': document.getElementById("search-anime-title-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}").value,
+	  },
+	  success: function(data) {
+	      $('#search-results-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}').find(".card").remove();
+	      
+	      $.each(data.data.Page.media, function(index, val) {
+		  var card = $('<div class="col-md-3 card" id="anime-search-result">');
+		  card.attr('data-title', val.title.userPreferred);
+		  card.attr('data-id', val.id);
+		  card.attr('data-title-target', "{{ title_id }}");
+		  card.attr('data-requirement-number', {{ requirement.number }});
+
+		  {% if requirement.bonus %}
+		  card.attr('data-is-bonus', true);
+		  {% endif %}
+		  
+		  $('#search-results-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}').append(card);
+		  
+		  var img = $('<img class="card-img-top" />');
+		  img.attr('id', 'search-result-' + index);
+		  img.attr('src', val.coverImage.large);
+		  card.append(img);
+
+		  var cardBody = $('<div class="card-body">');
+		  card.append(cardBody);
+
+		  cardBody.append($('<p class="card-title">').text(val.title.userPreferred));
+	      });
+	  },
+	  failure: function(data) {
+	      alert('An error has occured');
+	  }
+      });
+  }
+</script>

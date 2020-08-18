@@ -19,4 +19,5 @@ urlpatterns = [
     path('delete-post/<int:comment_id>/', views.delete_post, name='delete-post'),
     path('delete-post/<int:comment_id>/submission', views.delete_post, {'is_submission': True}, name='delete-submission'),
     path('scan', views.scan, name='scan'),
+    path('search-anime', views.search_anime, name='search-anime'),
 ]

@@ -70,6 +70,84 @@ class Anilist:
         }
     }
     '''
+
+    GET_ANIME_FROM_ID_QUERY = '''
+    query ($ids: [Int]) {
+        Page(page:1, perPage: 50) {
+            pageInfo {
+                currentPage
+                lastPage
+                hasNextPage
+                perPage
+            }
+            media(id_in: $ids, type: ANIME) {
+                id,
+                title {
+                    userPreferred
+                },
+                coverImage {
+                    large
+                },
+                episodes,
+                mediaListEntry {
+                    id,
+                    status,
+                    progress,
+                    repeat,
+                    startedAt {
+                        year,
+                        month,
+                        day
+                    },
+                    completedAt {
+                        year,
+                        month,
+                        day
+                    }
+                }
+            }
+        }
+    }
+    '''
+
+    SEARCH_ANIME_QUERY = '''
+    query ($search: String) {
+        Page(page:1, perPage: 50) {
+            pageInfo {
+                currentPage
+                lastPage
+                hasNextPage
+                perPage
+            }
+            media(search: $search, type: ANIME) {
+                id,
+                title {
+                    userPreferred
+                },
+                coverImage {
+                    large
+                },
+                episodes,
+                mediaListEntry {
+                    id,
+                    status,
+                    progress,
+                    repeat,
+                    startedAt {
+                        year,
+                        month,
+                        day
+                    },
+                    completedAt {
+                        year,
+                        month,
+                        day
+                    }
+                }
+            }
+        }
+    }
+    '''
     
     def __init__(self, client_id, client_secret, redirect_uri):
         self.client_id = client_id

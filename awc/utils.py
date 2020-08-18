@@ -192,9 +192,11 @@ class Utils(object):
                             requirement['link'] = req_from_db.anime_link
                             requirement['has_set_anime'] = True
                         else:
-                            requirement['anime'] = re.search('[MY\_]\s\[(.+?)\]\(https:\/\/anilist\.co\/anime\/[0-9\/]+\)', line).group(1)
-                            requirement['link'] = re.search(r'\((https:\/\/anilist\.co\/anime\/[0-9\/]+)\)', line).group(1)
+                            requirement['anime'] = re.search('[MY\_]\s\[(.+?)\]\(https:\/\/anilist\.co\/anime\/[0-9]+', line).group(1)
+                            requirement['link'] = re.search(r'\((https:\/\/anilist\.co\/anime\/[0-9]+)', line).group(1)
                             requirement['has_set_anime'] = False
+
+                        requirement['anime_id'] = int(re.search(r'https:\/\/anilist\.co\/anime\/([0-9]+)', requirement['link']).group(1))
 
                         # Get extra stuff
                         requirement['extra_newline'] = req_from_db.extra_newline
