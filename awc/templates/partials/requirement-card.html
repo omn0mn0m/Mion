@@ -1,0 +1,60 @@
+<div class="card my-3">
+  <div class="card-header">
+    <h4>{% if requirement.bonus %}Bonus{% endif %} Requirement {{ requirement.number }}</h4>
+    <h6>{{ requirement.text }}</h6>
+  </div>
+  <div class="card-body">
+    <div class="row no-gutters">
+      <div class="col-md">
+	{% if requirement.media %}
+	<h4 class="card-title" name="requirement-title-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" id="requirement-title-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}"><a href="{{ requirement.link }}" target="_blank" id="requirement-title-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}">{{ requirement.media.title.userPreferred }}</a></h4>
+	
+	<input type="hidden" name="requirement-anime-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" id="requirement-anime-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" value="{{ requirement.media.title.userPreferred }}">
+	<input type="hidden" name="requirement-link-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" id="requirement-link-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" value="{{ requirement.link }}">
+	{% else %}
+	<h4 class="card-title" name="requirement-title-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" id="requirement-title-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}"><a href="https://anilist.co/anime/00000" target="_blank" id="requirement-title-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}">Anime Title</a></h4>
+	
+	<input type="hidden" name="requirement-anime-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" id="requirement-anime-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" value="Anime Title">
+	<input type="hidden" name="requirement-link-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" id="requirement-link-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" value="https://anilist.co/anime/00000">
+	{% endif %}
+      </div>
+      <div class="col-md text-right">
+	<a class="card-link" href="#anime-search-modal-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" data-toggle="modal">Change Anime</a>
+      </div>
+    </div>
+    <div class="row no-gutters">
+      <div class="col-md-3">
+	<select name="completed-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" id="completed-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}">
+	  <option value="O" {% if requirement.completed == "O" %}selected{% endif %}>Not Completed</option>
+	  <option value="X" {% if requirement.completed == "X" %}selected{% endif %}>Completed</option>
+	  {% if challenge.allows_up_to_date %}
+	  <option value="U" {% if requirement.completed == "U" %}selected{% endif %}>Up-to-date</option>
+	  {% endif %}
+	</select>
+      </div>
+      <div class="col-md-3">
+	<label for="requirement-start-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}">Start Date</label>
+	<input type="text" style="width:120px" name="requirement-start-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" id="requirement-start-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" value={{ requirement.start }}>
+      </div>
+      <div class="col-md-3">
+	<label for="requirement-finish-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}">Finish Date</label>
+	<input type="text" style="width:120px" name="requirement-finish-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" id="requirement-finish-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" value={{ requirement.finish }}>
+      </div>
+      <div class="col-md-3">
+	{% if requirement.mode != "D" %}
+	<label for="mode-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}">Difficulty Mode</label>
+	<select name="mode-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" id="mode-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}">
+	  <option value="E" {% if requirement.mode == "E" %}selected{% endif %}>Easy</option>
+	  <option value="N" {% if requirement.mode == "N" %}selected{% endif %}>Normal</option>
+	  <option value="H" {% if requirement.mode == "H" %}selected{% endif %}>Hard</option>
+	  <option value="B" {% if requirement.mode == "B" %}selected{% endif %}>Bonus</option>
+	</select>
+	<br><br>
+	{% endif %}
+      </div>
+    </div>
+    <div class="row no-gutters">
+      <textarea class="autoExpand" name="requirement-extra-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" id="requirement-extra-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" style="width:100%" placeholder="Extra">{{ requirement.extra }}</textarea>
+    </div>
+  </div>
+</div>
