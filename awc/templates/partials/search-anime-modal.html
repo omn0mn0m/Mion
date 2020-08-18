@@ -9,15 +9,9 @@
       </div>
       <div class="modal-body">
 	<div class="row">
-	  <div class="col-md-4">
-            <input type="text" name="search-anime-title-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" id="search-anime-title-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" placeholder="Anime Title...">
-	  </div>
-	  <div class="col-md-2">
-	    <button type="button" class="btn btn-primary" onclick="searchAnime{% if requirement.bonus %}Bonus{% endif %}{{ requirement.number }}()">Search</button>
-	  </div>
-	  <div class="col-md-2">
-	    <button type="button" class="btn btn-danger" id="anime-search-result" data-title="Anime Title" data-id="00000" data-title-target="{{ title_id }}" data-requirement-number="{{ requirement.number }}" {% if requirement.bonus %}data-is-bonus=true{% endif %}>Clear Anime</button>
-	  </div>
+          <input type="text" name="search-anime-title-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" id="search-anime-title-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" placeholder="Anime Title...">
+	  <button type="button" class="btn btn-primary" onclick="searchAnime{% if requirement.bonus %}Bonus{% endif %}{{ requirement.number }}()">Search</button>
+	  <button type="button" class="btn btn-danger" id="anime-search-result" data-title="Anime Title" data-id="00000" data-title-target="{{ title_id }}" data-requirement-number="{{ requirement.number }}" {% if requirement.bonus %}data-is-bonus=true{% endif %}>Clear Anime</button>
 	</div>
 	<div class="row" id="search-results-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}">
 	  
