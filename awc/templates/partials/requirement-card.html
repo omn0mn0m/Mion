@@ -1,7 +1,18 @@
-<div class="card my-3">
+<div class="card my-3" id="requirement-card-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}">
   <div class="card-header">
-    <h4>{% if requirement.bonus %}Bonus{% endif %} Requirement {{ requirement.number }}</h4>
-    <h6>{{ requirement.text }}</h6>
+    <div class="row no-gutters">
+      <div class="col">
+	<h4>{% if requirement.bonus %}Bonus{% endif %} Requirement {{ requirement.number }}</h4>
+      </div>
+      <div class="col">
+	<button type="button" class="btn btn-primary btn-sm float-right" id="update-requirement-button-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" onclick="updateFromAnilist(this)" data-req-num="{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" data-completed="{{ requirement.media.mediaListEntry.status }}" data-start="{{ requirement.media.mediaListEntry.startedAt.day }}/{{ requirement.media.mediaListEntry.startedAt.month }}/{{ requirement.media.mediaListEntry.startedAt.year }}" data-finish="{{ requirement.media.mediaListEntry.completedAt.day }}/{{ requirement.media.mediaListEntry.completedAt.month }}/{{ requirement.media.mediaListEntry.completedAt.year }}">Update From Anilist</button>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col">
+	<h6>{{ requirement.text }}</h6>
+      </div>
+    </div>
   </div>
   <div class="card-body">
     <div class="row no-gutters">

@@ -39,11 +39,13 @@
 		  card.attr('data-title', val.title.userPreferred);
 		  card.attr('data-id', val.id);
 		  card.attr('data-title-target', "{{ title_id }}");
-		  card.attr('data-requirement-number', {{ requirement.number }});
+		  card.attr('data-requirement-number', "{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}");
 
-		  {% if requirement.bonus %}
-		  card.attr('data-is-bonus', true);
-		  {% endif %}
+		  if (val.mediaListEntry != null) {
+		      card.attr('data-completed', val.mediaListEntry.status);
+		      card.attr('data-start', val.mediaListEntry.startedAt.day + "/" + val.mediaListEntry.startedAt.month + "/" + val.mediaListEntry.startedAt.year);
+		      card.attr('data-finish', val.mediaListEntry.completedAt.day + "/" + val.mediaListEntry.completedAt.month + "/" + val.mediaListEntry.completedAt.year);
+		  }
 		  
 		  $('#search-results-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}').append(card);
 		  
