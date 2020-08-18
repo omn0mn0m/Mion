@@ -10,7 +10,7 @@ from .models import Challenge, Requirement
 def get_extra(line):
     extra = ''
     
-    extra_regex = re.search(r'\(https:\/\/anilist\.co\/anime\/[0-9\/]+\)(.*)', line)
+    extra_regex = re.search(r'\(https:\/\/anilist\.co\/anime\/[a-zA-Z0-9-\/]+\)(.*)', line)
     
     if extra_regex != None:
         extra = extra_regex.group(1)
