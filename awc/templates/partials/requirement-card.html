@@ -10,7 +10,9 @@
     </div>
     <div class="row">
       <div class="col">
+	{% if requirement.text != " " %}
 	<h6>{{ requirement.text }}</h6>
+	{% endif %}
       </div>
     </div>
   </div>
@@ -30,7 +32,9 @@
 	{% endif %}
       </div>
       <div class="col-md text-right">
+	{% if not requirement.has_set_anime %}
 	<a class="card-link" href="#anime-search-modal-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" data-toggle="modal">Change Anime</a>
+	{% endif %}
       </div>
     </div>
     <div class="row no-gutters">
