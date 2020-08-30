@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'awc.apps.AWCConfig',
     'core.apps.CoreConfig',
     'homepage.apps.HomepageConfig',
+    'mrc.apps.MRCConfig',
     'crispy_forms',
     'django.contrib.admin',
     'django.contrib.auth',
