@@ -39,6 +39,7 @@ if not DEBUG:
 
 INSTALLED_APPS = [
     'awc.apps.AWCConfig',
+    'core.apps.CoreConfig',
     'homepage.apps.HomepageConfig',
     'crispy_forms',
     'django.contrib.admin',

@@ -3,10 +3,11 @@ from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 
 from .anilist import Anilist
-from .models import User, Submission, Challenge
+from .models import Submission, Challenge
 from .utils import Utils
-
 from .forms import CreateChallengeForm, AddExistingSubmissionForm
+
+from core.models import User
 
 import json
 import os
