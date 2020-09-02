@@ -153,20 +153,25 @@ def edit(request, challenge_name):
 
     anime_ids = []
 
-    for requirement in parsed_response['requirements']:
-        anime_ids.append(int(requirement['anime_id']))
-    
-    variables = {
-        'ids': anime_ids
-    }
+    if parsed_response['failed']:
+        context['error_message'] = "Failed to parse your challenge code... Make sure that your comment follows the AWC challenge code format for this challenge."
+    else:
+        for requirement in parsed_response['requirements']:
+            if not requirement['force_raw_edit']:
+                anime_ids.append(int(requirement['anime_id']))
+        
+        variables = {
+            'ids': anime_ids
+        }
 
-    anime = json.loads(anilist.post_authorised_query(request.session['access_token'], anilist.GET_ANIME_FROM_ID_QUERY, variables))
+        anime = json.loads(anilist.post_authorised_query(request.session['access_token'], anilist.GET_ANIME_FROM_ID_QUERY, variables))
 
-    for i, requirement in enumerate(parsed_response['requirements']):
-        media = next((item for item in anime['data']['Page']['media'] if item['id'] == requirement['anime_id']), None)
+        for i, requirement in enumerate(parsed_response['requirements']):
+            if not requirement['force_raw_edit']:
+                media = next((item for item in anime['data']['Page']['media'] if item['id'] == requirement['anime_id']), None)
 
-        if media:
-            parsed_response['requirements'][i]['media'] = media
+            if media:
+                parsed_response['requirements'][i]['media'] = media
 
     context['submission'] = submission
     context['response'] = parsed_response
@@ -174,10 +179,7 @@ def edit(request, challenge_name):
     context['anilist_redirect_uri'] = anilist_redirect_uri
     context['anilist_client_id'] = anilist_client_id
     context['challenge'] = challenge
-
-    if parsed_response['failed']:
-        context['error_message'] = "Failed to parse your challenge code... Make sure that your comment follows the AWC challenge code format for this challenge."
-
+    
     return render(request, 'awc/edit.html', context)
 
 def add_existing_submission(request):

@@ -84,6 +84,10 @@ class Requirement(models.Model):
     anime_title = models.CharField(max_length=100, blank=True, default='')
     anime_link = models.CharField(max_length=50, blank=True, default='')
 
+    # For weirdly formatted requirements
+    force_raw_edit = models.BooleanField(default=False)
+    raw_requirement = models.TextField(blank=True, default='')
+
     def __str__(self):
         return "{} Requirement {}".format(self.challenge, self.number)
 

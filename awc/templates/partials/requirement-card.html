@@ -8,15 +8,23 @@
 	<button type="button" class="btn btn-primary btn-sm float-right" id="update-requirement-button-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" onclick="updateFromAnilist(this)" data-req-num="{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" data-completed="{{ requirement.media.mediaListEntry.status }}" data-start="{{ requirement.media.mediaListEntry.startedAt.day }}/{{ requirement.media.mediaListEntry.startedAt.month }}/{{ requirement.media.mediaListEntry.startedAt.year }}" data-finish="{{ requirement.media.mediaListEntry.completedAt.day }}/{{ requirement.media.mediaListEntry.completedAt.month }}/{{ requirement.media.mediaListEntry.completedAt.year }}">Update From Anilist</button>
       </div>
     </div>
+    {% if requirement.text != " " and not requirement.force_raw_edit %}
     <div class="row">
       <div class="col">
-	{% if requirement.text != " " %}
 	<h6>{{ requirement.text }}</h6>
-	{% endif %}
       </div>
     </div>
+    {% endif %}
   </div>
   <div class="card-body">
+    {% if requirement.force_raw_edit %}
+    <div class="row no-gutters">
+      <div class="col">
+	<h5>Raw Edit</h5>
+	<textarea class="autoExpand" name="requirement-raw-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" id="requirement-raw-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" style="width:100%" placeholder="Extra">{{ requirement.raw_requirement }}</textarea>
+      </div>
+    </div>
+    {% else %}
     <div class="row no-gutters">
       <div class="col-md">
 	{% if requirement.media %}
@@ -67,9 +75,12 @@
 	<br><br>
 	{% endif %}
       </div>
+      {% endif %}
     </div>
+    {% if not requirement.force_raw_edit %}
     <div class="row no-gutters">
       <textarea class="autoExpand" name="requirement-extra-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" id="requirement-extra-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" style="width:100%" placeholder="Extra">{{ requirement.extra }}</textarea>
     </div>
+    {% endif %}
   </div>
 </div>
