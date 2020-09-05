@@ -11,7 +11,7 @@ class Challenge(models.Model):
     CLASSIC = 'CLA'
     PUZZLE = 'PUZ'
     SPECIAL = 'SPE'
-
+    
     CATEGORY_CHOICES = [
         (GENRE, 'Genre'),
         (TIMED, 'Timed'),
@@ -30,11 +30,13 @@ class Challenge(models.Model):
         default = TIMED,
     )
     extra = models.TextField(blank=True, default='')
-
-    prerequisites = models.ManyToManyField('self', symmetrical=False)
-
+    
+    prerequisites = models.ManyToManyField('self', symmetrical=False, blank=True)
+    
     allows_up_to_date = models.BooleanField(default=False)
-
+    
+    archived = models.BooleanField(default=False)
+    
     def __str__(self):
         return self.name
 

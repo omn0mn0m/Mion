@@ -144,6 +144,26 @@
 	  </div>
 	</div>
       </div>
+      <div class="card">
+	<div class="card-header" id="userHeadingEight">
+	  <h2 class="mb-0">
+            <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="#userCollapseEight" aria-expanded="false" aria-controls="userCollapseEight">
+	      Archived Challenges
+            </button>
+	  </h2>
+	</div>
+	<div id="userCollapseEight" class="collapse" aria-labelledby="userHeadingEight" data-parent="#userAccordion">
+	  <div class="card-body">
+	    <ul>
+	      {% for submission in user_archived_challenge_list %}
+	      <li><a href="{% url 'awc:edit' submission.challenge %}">{{ submission.challenge }}</a></li>
+	      {% empty %}
+	      <p>No challenges found.</p>
+	      {% endfor %}
+	    </ul>
+	  </div>
+	</div>
+      </div>
     </div>
   </form>  
 </div>

@@ -144,6 +144,25 @@
 	  </div>
 	</div>
       </div>
+      <div class="card">
+	<div class="card-header" id="headingEight">
+	  <h2 class="mb-0">
+            <button class="btn btn-link btn-block text-left collapsed" type="button" data-toggle="collapse" data-target="#collapseEight" aria-expanded="false" aria-controls="collapseEight">
+	      Archived Challenges
+            </button>
+	  </h2>
+	</div>
+	<div id="collapseEight" class="collapse" aria-labelledby="headingEight" data-parent="#challengeAccordion">
+	  <div class="card-body">
+	    {% for challenge in archived_challenge_list %}
+	    <input type="checkbox" name="challenges[]" id="{{ challenge.name }}" value="{{ challenge.id }}">
+	    <label for="{{ challenge.name }}">{{ challenge.name }}</label><br>
+	    {% empty %}
+	    <p>No challenges found.</p>
+	    {% endfor %}
+	  </div>
+	</div>
+      </div>
     </div>
   </form>  
 </div>
