@@ -80,13 +80,13 @@ def index(request):
 
     if 'user' in request.session:
         try:
-            context['user_genre_challenge_list'] = context['user'].submission_set.filter(challenge__category=Challenge.GENRE).order_by('challenge__name')
-            context['user_timed_challenge_list'] = context['user'].submission_set.filter(challenge__category=Challenge.TIMED).order_by('challenge__name')
-            context['user_tier_challenge_list'] = context['user'].submission_set.filter(challenge__category=Challenge.TIER).order_by('challenge__name')
-            context['user_collection_challenge_list'] = context['user'].submission_set.filter(challenge__category=Challenge.COLLECTION).order_by('challenge__name')
-            context['user_classic_challenge_list'] = context['user'].submission_set.filter(challenge__category=Challenge.CLASSIC).order_by('challenge__name')
-            context['user_puzzle_challenge_list'] = context['user'].submission_set.filter(challenge__category=Challenge.PUZZLE).order_by('challenge__name')
-            context['user_special_challenge_list'] = context['user'].submission_set.filter(challenge__category=Challenge.SPECIAL).order_by('challenge__name')
+            context['user_genre_challenge_list'] = context['user'].submission_set.filter(challenge__category=Challenge.GENRE, challenge__archived=False).order_by('challenge__name')
+            context['user_timed_challenge_list'] = context['user'].submission_set.filter(challenge__category=Challenge.TIMED, challenge__archived=False).order_by('challenge__name')
+            context['user_tier_challenge_list'] = context['user'].submission_set.filter(challenge__category=Challenge.TIER, challenge__archived=False).order_by('challenge__name')
+            context['user_collection_challenge_list'] = context['user'].submission_set.filter(challenge__category=Challenge.COLLECTION, challenge__archived=False).order_by('challenge__name')
+            context['user_classic_challenge_list'] = context['user'].submission_set.filter(challenge__category=Challenge.CLASSIC, challenge__archived=False).order_by('challenge__name')
+            context['user_puzzle_challenge_list'] = context['user'].submission_set.filter(challenge__category=Challenge.PUZZLE, challenge__archived=False).order_by('challenge__name')
+            context['user_special_challenge_list'] = context['user'].submission_set.filter(challenge__category=Challenge.SPECIAL, challenge__archived=False).order_by('challenge__name')
             context['user_archived_challenge_list'] = context['user'].submission_set.filter(challenge__archived=True).order_by('challenge__name')
 
             context['genre_challenge_list'] = Challenge.objects.filter(category=Challenge.GENRE, archived=False).exclude(id__in=context['user_genre_challenge_list'].values('challenge')).order_by('name')
