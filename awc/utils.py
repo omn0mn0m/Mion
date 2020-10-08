@@ -556,7 +556,7 @@ class Utils(object):
                         req['anime'] = requirement.anime_title
                         req['link'] = requirement.anime_link
                     else:
-                        req['anime'] = request.POST.get('requirement-anime-{}'.format(req['number']), "Anime Title").strip()
+                        req['anime'] = request.POST.get('requirement-anime-{}'.format(req['number']), "Anime_Title").strip()
                         req['link'] = request.POST.get('requirement-link-{}'.format(req['number']), "https://anilist.co/anime/00000/").strip()
 
                     req['extra'] = request.POST.get('requirement-extra-{}'.format(req['number']), requirement.extra).strip()
@@ -681,7 +681,7 @@ class Utils(object):
         # Determines if the challenge has unique requirements
         if "Seasonal" in challenge_name:
             needs_requirements = False
-            challenge.extra = "Favourite (Optional): [Anime Title](https://anilist.co/anime/00000/)"
+            challenge.extra = "Favourite (Optional): [Anime_Title](https://anilist.co/anime/00000/)"
         elif "Classic" in challenge_name:
             needs_requirements = False
         else:
