@@ -3,44 +3,55 @@
 {% block content %}
 <h1>{{ challenge.name  }} <a href="https://anilist.co/forum/thread/{{ challenge.thread_id  }}">[Thread]</a>
 
-{% if submission %}
+  {% if submission %}
   <a href="https://anilist.co/forum/thread/{{ submission.thread_id }}/comment/{{ submission.comment_id }}">[Comment]</a></h1>
-{% else %}
-</h1>
+  {% else %}
+  </h1>
 {% endif %}
 
-<p>
-  {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+{% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
+
+{% if not response.is_new_format %}
+<div class="alert alert-danger" role="alert">Your post is using the old format. It must be updated by Dec 1st. Select "New" for the Challenge Code Format to update.</div>
+{% endif %}
 
 {% if not response.failed %}
-<form method="post">
+<form method="post" class="container-fluid">
   {% csrf_token %}
-  
-  <label for="challenge-start">Challenge Start Date</label>
-  <input type="text" name="challenge-start" id="challenge-start" value={{ response.start }}>
-  
-  <label for="challenge-finish">Challenge Finish Date</label>
-  <input type="text" name="challenge-finish" id="challenge-finish" value={{ response.finish }}><br>
+  <div class="form-group row">
+    <div class="col">
+      <label for="challenge-start">Challenge Start</label>
+      <input class="form-control" type="date" name="challenge-start" id="challenge-start" value={{ response.start }}>
+    </div>
+    <div class="col">
+      <label for="challenge-finish">Challenge Finish</label>
+      <input class="form-control" type="date" name="challenge-finish" id="challenge-finish" value={{ response.finish }}>
+    </div>
+    <div class="col">
+      <label for="format">Challenge Code Format</label>
+      <select class="form-control" id="format" name="format">
+	<option value="old" {% if not response.is_new_format %}selected{% endif %}>Old</option>
+	<option value="new" {% if response.is_new_format %}selected{% endif %}>New</option>
+      </select>
+    </div>
+  </div>
   
   <label for="challenge-extra">Challenge Extra</label>
-  <textarea class="autoExpand" name="challenge-extra" id="challenge-extra" style="width: 100%">{{ response.extra }}</textarea><br>
+  <textarea class="autoExpand" name="challenge-extra" id="challenge-extra" style="width: 100%">{{ response.extra }}</textarea>
 
-  {% if response.prerequisites %}
-  <br>
-  <hr>
-  
-  <h3>Challenge Prerequisites</h3>
+  {% if response.prerequisites %}<hr><h3>Challenge Prerequisites</h3>{% endif %}
   
   {% for prerequisite_name, prerequisite_finish_date in response.prerequisites.items %}
-  <h4>{{ prerequisite_name }}</h4
+  <h4>{{ prerequisite_name }}</h4>
 
-  <label for="prerequisite-{{ prerequisite_name }}-finish">Finish Date</label>
-  <input type="text" name="prerequisite-{{ prerequisite_name }}-finish" id="prerequisite-{{ prerequisite_name }}-finish" value={{ prerequisite_finish_date }}><br><br>
+  <div class="form-group">
+    <label for="prerequisite-{{ prerequisite_name }}-finish">Finish Date</label>
+    <input type="date" class="form-control" name="prerequisite-{{ prerequisite_name }}-finish" id="prerequisite-{{ prerequisite_name }}-finish" value={{ prerequisite_finish_date }}>
+  </div>
   {% empty %}
   
   {% endfor %}
-  {% endif %}
-
+  
   <hr>
   
   <p>These requirements are automatically generated from a challenge code. The <a href="https://anilist.co/forum/thread/{{ challenge.thread_id  }}">full challenge post</a> should still be read through for information and reference.</p>
@@ -70,28 +81,25 @@
   
   <input class="btn btn-primary" type="submit" value="Update Challenge">
 </form>
-</p>
 
-<p>
-  {% if submission.submission_comment_id %}
-  <form action="{% url 'awc:delete-submission' submission.comment_id %}" method='GET'>
-    <input class="btn btn-primary" type="submit" onclick="return confirm('Are you sure you want to delete your submission?')" value="Delete Submission">
-  </form>
-  {% else %}
-  <form name="submit-post" onsubmit="return checkCompleted()" action="{% url 'awc:submit-post' challenge.name submission.thread_id submission.comment_id %}" method='POST'>
-    {% csrf_token %}
-    <label for="challenge-difficulty">Challenge Difficulty</label>
-    <select name="challenge-difficulty" id="challenge-difficulty">
-      <option value="">N/A</option>
-      <option value="Easy">Easy</option>
-      <option value="Normal">Normal</option>
-      <option value="Hard">Hard</option>
-    </select>
-    
-    <input class="btn btn-primary" type="submit" onclick="return confirm('Are you sure you want to submit? Make sure you pressed Update Challenge first')" value="Submit">
-  </form>
-  {% endif %}
-</p>
+{% if submission.submission_comment_id %}
+<form action="{% url 'awc:delete-submission' submission.comment_id %}" method='GET' class="container-fluid mt-3">
+  <input class="btn btn-primary" type="submit" onclick="return confirm('Are you sure you want to delete your submission?')" value="Delete Submission">
+</form>
+{% else %}
+<form name="submit-post" onsubmit="return checkCompleted()" action="{% url 'awc:submit-post' challenge.name submission.thread_id submission.comment_id %}" method='POST' class="container-fluid mt-3">
+  {% csrf_token %}
+  <label for="challenge-difficulty">Challenge Difficulty</label>
+  <select name="challenge-difficulty" id="challenge-difficulty">
+    <option value="">N/A</option>
+    <option value="Easy">Easy</option>
+    <option value="Normal">Normal</option>
+    <option value="Hard">Hard</option>
+  </select>
+  
+  <input class="btn btn-primary" type="submit" onclick="return confirm('Are you sure you want to submit? Make sure you pressed Update Challenge first')" value="Submit">
+</form>
+{% endif %}
 
 <p id="errors" class="text-danger"></p>
 {% else %}
@@ -105,12 +113,10 @@
 </p>
 {% endif %}
 
-<p>
-  <form action="{% url 'awc:delete-post' submission.comment_id %}" method='GET'>
-    <input class="btn btn-danger" type="submit" onclick="return confirm('Are you sure you want to delete?')" value="Delete">
-  </form>
-</p>
 
+<form action="{% url 'awc:delete-post' submission.comment_id %}" method='GET' class="container-fluid mb-3">
+  <input class="btn btn-danger" type="submit" onclick="return confirm('Are you sure you want to delete?')" value="Delete">
+</form>
 {% endblock %}
 
 {% block javascript %}

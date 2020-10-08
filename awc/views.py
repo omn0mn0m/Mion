@@ -53,7 +53,7 @@ def index(request):
 
                 # Sets up default challenge info
                 post = request.POST.copy()
-                post['challenge-start'] = date.today().strftime('%d/%m/%Y')
+                post['challenge-start'] = date.today().isoformat()
                 request.POST = post
 
                 category = challenge.category
@@ -172,8 +172,12 @@ def edit(request, challenge_name):
             if not requirement['force_raw_edit']:
                 media = next((item for item in anime['data']['Page']['media'] if item['id'] == requirement['anime_id']), None)
 
-            if media:
-                parsed_response['requirements'][i]['media'] = media
+                if media:
+                    if media['mediaListEntry'] != None and type(media['mediaListEntry']['startedAt']) is dict:
+                        media['mediaListEntry']['startedAt'] = date(media['mediaListEntry']['startedAt']['year'], media['mediaListEntry']['startedAt']['month'], media['mediaListEntry']['startedAt']['day']).isoformat()
+                        media['mediaListEntry']['completedAt'] = date(media['mediaListEntry']['completedAt']['year'], media['mediaListEntry']['completedAt']['month'], media['mediaListEntry']['completedAt']['day']).isoformat()
+
+                    parsed_response['requirements'][i]['media'] = media
 
     context['submission'] = submission
     context['response'] = parsed_response

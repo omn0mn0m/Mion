@@ -3,9 +3,14 @@ import re
 import collections
 import traceback
 
+from itertools import groupby
 from operator import itemgetter
+from datetime import datetime
 
 from .models import Challenge, Requirement
+
+def remove_sublist(sublist, nested_list):
+    return [i for i in nested_list if i != sublist]
 
 def get_extra(line):
     extra = ''
@@ -30,6 +35,52 @@ def get_requirement_mode(i, easy_index, normal_index, hard_index, bonus_index):
         mode = Requirement.DEFAULT
 
     return mode
+
+def convert_date(raw_date):
+    raw_date = raw_date.strip()
+    
+    if "DD" in raw_date:
+        return raw_date
+    else:
+        for date_format in ('%d/%m/%Y', '%m/%d/%Y', '%Y-%m-%d'):
+            try:
+                date_object = datetime.strptime(raw_date, date_format)
+
+                if date_object:
+                    break
+            except ValueError:
+                pass
+            
+        return date_object.strftime('%Y-%m-%d')
+
+def convert_extra(raw_extra):
+    # Replaces old separators with //
+    extra = raw_extra.replace('\n', ' // ')
+    extra = extra.replace(',', ' //')
+
+    # Replaces old wrappers
+    extra = extra.replace('~!', '').replace('!~', '')
+
+    if extra.startswith('_') and extra.endswith('_'):
+        extra = extra[1:-1]
+
+    # Replaces old screenshots with new screenshots
+    extra = extra.replace('Screenshot:', '').replace('Screenshots:', '')
+    extra = extra.replace('img(', '[Screenshot](')
+    
+    extra = extra.strip() # Removes any weird lingering spaces
+    
+    return extra
+
+def ordinal(n):
+    n = int(n)
+
+    suffix = ['th', 'st', 'nd', 'rd', 'th'][min(n % 10, 4)]
+
+    if 11 <= (n % 100) <= 13:
+        suffix = 'th'
+
+    return str(n) + suffix
 
 class MockRequirement(object):
     '''Non-functional requirement class for challenges without database requirements'''
@@ -59,6 +110,11 @@ class Utils(object):
     MODE_EASY = "__Mode: Easy__"
     MODE_NORMAL = "__Mode: Normal__"
     MODE_HARD = "__Mode: Hard__"
+    MODE_BONUS = "__Bonus__"
+
+    @staticmethod
+    def is_new_format(line):
+        return not bool(re.search(r'Start: [DMY0-9/]+', line))
 
     @staticmethod
     def split_by_key(dict_list, key):
@@ -70,12 +126,27 @@ class Utils(object):
         return result
     
     @staticmethod
-    def create_requirement_string(requirement):
+    def create_requirement_string(requirement, post_format="old"):
+        use_old_format = post_format == "old"
+        
         if 'raw_requirement' in requirement:
-            requirement_string = requirement['raw_requirement'] + '\n'
+            if use_old_format:
+                requirement_string = requirement['raw_requirement'] + '\n'
+            else:
+                requirement_string = requirement['raw_requirement'] + '\n\n'
         else:
             if requirement['text'] == '' or requirement['text'] == ' ':
-                requirement_string = "{number}) [{completed}] Start: {start} Finish: {finish} [{anime}]({link})".format(
+                if requirement['bonus']:
+                    requirement_string = "B{number}) [{completed}]"
+                else:
+                    requirement_string = "{number}) [{completed}]"
+                    
+                if use_old_format:
+                    requirement_string = requirement_string + " Start: {start} Finish: {finish} [{anime}]({link})"
+                else:
+                    requirement_string = requirement_string + "\n[{anime}]({link})\nStart: {start} Finish: {finish}"
+                
+                requirement_string = requirement_string.format(
                     number=requirement['number'],
                     completed=requirement['completed'],
                     start=requirement['start'],
@@ -84,23 +155,173 @@ class Utils(object):
                     link=requirement['link'],
                 )
             else:
-                requirement_string = "{number}) [{completed}] Start: {start} Finish: {finish} __{text}__ [{anime}]({link})".format(
-                    number=requirement['number'],
-                    completed=requirement['completed'],
-                    start=requirement['start'],
-                    finish=requirement['finish'],
-                    text=requirement['text'],
-                    anime=requirement['anime'],
-                    link=requirement['link'],
-                )
+                if requirement['bonus']:
+                    requirement_string = "B{number}) [{completed}]"
+                else:
+                    requirement_string = "{number}) [{completed}]"
+                
+                if use_old_format:
+                    requirement_string = requirement_string + " Start: {start} Finish: {finish} __{text}__ [{anime}]({link})"
+                else:
+                    requirement_string = requirement_string + " __{text}__\n[{anime}]({link})\nStart: {start} Finish: {finish}"
+                
+                requirement_string = requirement_string.format(number=requirement['number'],
+                                                               completed=requirement['completed'],
+                                                               start=requirement['start'],
+                                                               finish=requirement['finish'],
+                                                               text=requirement['text'],
+                                                               anime=requirement['anime'],
+                                                               link=requirement['link'],)
 
-            if requirement['extra_newline']:
-                requirement_string = requirement_string + '\n' + requirement['extra'] + '\n'
+            if use_old_format:
+                if requirement['extra_newline']:
+                    requirement_string = requirement_string + '\n' + requirement['extra'] + '\n'
+                else:
+                    requirement_string = requirement_string + ' ' + requirement['extra'] + '\n'
             else:
-                requirement_string = requirement_string + ' ' + requirement['extra'] + '\n'
+                if requirement['extra']:
+                    requirement_string = requirement_string + ' // ' + convert_extra(requirement['extra']) + '\n\n'
+                else:
+                    requirement_string = requirement_string + '\n\n'
 
         return requirement_string
-        
+
+    @staticmethod
+    def parse_new_requirements(submission, response):
+        """Returns a dictionary of the challenge code information"""
+        parsed_comment = {}
+        requirements = []
+
+        response_dict = json.loads(response)
+
+        comment = 'No comment found...'
+
+        try:
+            comment = response_dict['data']['ThreadComment'][0]['comment']
+
+            lines = comment.splitlines()
+            
+            req_start_index = [i for i, s in enumerate(lines) if ('01)' in s or 'Mode: Easy' in s)][0]
+
+            # Split requirements into iterable groups list
+            grouped_lines = [list(group) for key, group in groupby(lines[req_start_index:], key=lambda line: line != '') if key]
+
+            current_mode = Requirement.DEFAULT
+
+            prev_requirement = None
+
+            grouped_lines = remove_sublist(['<hr>'], grouped_lines)
+            
+            # Parse each group
+            for i, group in enumerate(grouped_lines):
+                requirement = {}
+
+                if '---' in group:
+                    group.remove('---')
+                
+                if Utils.MODE_EASY in group:
+                    current_mode = Requirement.EASY
+                    group.remove(Utils.MODE_EASY)
+                elif Utils.MODE_NORMAL in group:
+                    current_mode = Requirement.NORMAL
+                    group.remove(Utils.MODE_NORMAL)
+                elif Utils.MODE_HARD in group:
+                    current_mode = Requirement.HARD
+                    group.remove(Utils.MODE_HARD)
+                elif Utils.MODE_BONUS in group:
+                    current_mode = Requirement.BONUS
+                    group.remove(Utils.MODE_BONUS)
+                else:
+                    pass
+
+                if "### __Winter__" in group:
+                    group.remove("### __Winter__")
+                elif "### __Spring__" in group:
+                    group.remove("### __Spring__")
+                elif "### __Summer__" in group:
+                    group.remove("### __Summer__")
+                elif "### __Fall__" in group:
+                    group.remove("### __Fall__")
+
+                # Get the requirements list for processing
+                if "Seasonal" in submission.challenge.name:
+                    requirements_list = MockRequirementSet(7)
+                elif "Classic" in submission.challenge.name:
+                    requirements_list = MockRequirementSet(40)
+                else:
+                    requirements_list = submission.challenge.requirement_set.all()
+
+                # Check for challenge extra info if at the last group
+                if i == len(grouped_lines) - 1:
+                    if not len(grouped_lines) == len(requirements_list):
+                        extra_index = len(grouped_lines) - 1
+
+                        if i == extra_index:
+                            parsed_comment['extra'] = '\n'.join(group)
+                            break
+
+                requirement['mode'] = current_mode
+                requirement['bonus'] = group[0][0] == 'B' and group[0][1].isdigit()
+                requirement['number'] = re.search(r'([0-9]+)[.\)]', group[0]).group(1)
+
+                if "Seasonal" in submission.challenge.name:
+                    req_from_db = MockRequirement(number=requirement['number'])
+                elif "Classic" in submission.challenge.name:
+                    req_from_db = MockRequirement(number=requirement['number'])
+                else:
+                    req_from_db = submission.challenge.requirement_set.get(number=requirement['number'], bonus=requirement['bonus'])
+
+                requirement['force_raw_edit'] = req_from_db.force_raw_edit
+
+                if req_from_db.force_raw_edit:
+                    requirement['raw_requirement'] = '\n'.join(group)
+                else:
+                    # Determine completed status
+                    requirement['completed'] = re.search(r'\[([XOU])\]', group[0]).group(1)
+
+                    # Determine start and finish dates ("Start: YYYY-MM-DD Finish: YYYY-MM-DD")
+                    requirement['start'] = convert_date(group[2][7:17])
+                    requirement['finish'] = convert_date(group[2][26:36])
+                    
+                    # Determine requirement text
+                    requirement['text'] = req_from_db.text
+
+                    # Determine the anime
+                    if req_from_db.anime_title:
+                        requirement['anime'] = req_from_db.anime_title
+                        requirement['link'] = req_from_db.anime_link
+                        requirement['has_set_anime'] = True
+                    else:
+                        requirement['anime'] = re.search('\[(.+?)\]', group[1]).group(1)
+                        requirement['link'] = re.search(r'\((https:\/\/anilist\.co\/anime\/[0-9]+)', group[1]).group(1)
+                        requirement['has_set_anime'] = False
+
+                    requirement['anime_id'] = int(re.search(r'https:\/\/anilist\.co\/anime\/([0-9]+)', requirement['link']).group(1))
+
+                    # Handles in-line extra info
+                    extra_split = group[2].split('//', 1)
+
+                    if len(extra_split) > 1:
+                        requirement['extra'] = extra_split[1]
+                    else:
+                        requirement['extra'] = ''
+                
+                requirements.append(requirement)
+                prev_requirement = requirement
+        except Exception as e:
+            parsed_comment = {
+                'failed': True,
+                'error': traceback.format_exc(),
+                'comment': comment,
+            }
+
+            return parsed_comment
+
+        parsed_comment['requirements'] = requirements
+        parsed_comment['failed'] = False
+            
+        return parsed_comment
+    
     @staticmethod
     def parse_challenge_code(submission, response):
         """Returns a dictionary of the challenge code information"""
@@ -115,128 +336,147 @@ class Utils(object):
             comment = response_dict['data']['ThreadComment'][0]['comment']
 
             lines = comment.splitlines()
-        
+
+            grouped_lines = [list(group) for key, group in groupby(lines, key=lambda line: line != '') if key]
+            
             req_start_index = [i for i, s in enumerate(lines) if 'Legend' in s][0]
 
             has_prerequisites = submission.challenge.prerequisites.exists()
 
             if has_prerequisites:
                 parsed_comment['prerequisites'] = {}
-            
-            for line in lines[:req_start_index]:
-                if has_prerequisites:
-                    prerequisite_challenge_name = re.search(r'\[(.*)\]', line)
-                    prerequisite_finish_date_regex = re.search(r'\) Finish Date: (.*)', line)
 
-                    if prerequisite_challenge_name and prerequisite_finish_date_regex:
-                        parsed_comment['prerequisites'][prerequisite_challenge_name.group(1)] = prerequisite_finish_date_regex.group(1)
-                
-                start_regex = re.search(r'Start Date: (.*)', line)
+                prerequisite_lines = grouped_lines.pop(1)
 
-                if start_regex:
-                    parsed_comment['start'] = start_regex.group(1)
+                for line in prerequisite_lines:
+                    prerequisite_challenge_name = re.search(r'\[(.+?)\]', line).group(1)
+                    prerequisite_finish_date = re.search(r'Finish Date: ([DMY0-9/\-]+)', line).group(1)
                     
-                finish_regex = re.search(r'[a-zA-z]+\sFinish Date: (.*)', line)
-                
-                if finish_regex:
-                    parsed_comment['finish'] = finish_regex.group(1)
-                
+                    parsed_comment['prerequisites'][prerequisite_challenge_name] = convert_date(prerequisite_finish_date)
+
             parsed_comment['category'] = submission.challenge.category
-            parsed_comment['extra'] = ''
-            
-            easy_index = normal_index = hard_index = bonus_index = -1
+                    
+            try:
+                parsed_comment['start'] = convert_date(re.search(r'Start Date: ([DMY0-9/\-]+)', grouped_lines[1][0]).group(1))
+                parsed_comment['finish'] = convert_date(re.search(r'Finish Date: ([DMY0-9/\-]+)', grouped_lines[1][1]).group(1))
+                requirements_group = grouped_lines[2:]
+            except:
+                parsed_comment['start'] = convert_date(re.search(r'Start Date: ([DMY0-9/\-]+)', grouped_lines[0][1]).group(1))
+                parsed_comment['finish'] = convert_date(re.search(r'Finish Date: ([DMY0-9/\-]+)', grouped_lines[0][2]).group(1))
+                requirements_group = grouped_lines[1:]
 
             prev_requirement = {}
 
-            for i, line in enumerate(lines[req_start_index + 1:]):
-                line = line.strip()
+            current_mode = Requirement.DEFAULT
 
-                if Utils.MODE_EASY in line:
-                    easy_index = i
-                elif Utils.MODE_NORMAL in line:
-                    normal_index = i
-                elif Utils.MODE_HARD in line:
-                    hard_index = i
-                elif '__Bonus__' in line:
-                    bonus_index = i
-                elif '---' in line:
-                    pass
-                elif len(line) > 0:
-                    requirement = {}
+            parsed_comment['is_new_format'] = False
 
-                    requirement['mode'] = get_requirement_mode(i, easy_index, normal_index, hard_index, bonus_index)
-
-                    bonus = line[0] == 'B'
-
-                    # If a requirement listing was found
-                    if line[0].isdigit() or bonus:
-                        requirement['bonus'] = bonus
-
-                        requirement['number'] = re.search(r'([0-9]+)[.\)]', line).group(1)
-
-                        
-
-                        if "Seasonal" in submission.challenge.name:
-                            req_from_db = MockRequirement(number=requirement['number'])
-                        elif "Classic" in submission.challenge.name:
-                            req_from_db = MockRequirement(number=requirement['number'])
-                        else:
-                            req_from_db = submission.challenge.requirement_set.get(number=requirement['number'], bonus=bonus)
-
-                        requirement['force_raw_edit'] = req_from_db.force_raw_edit
-                            
-                        if req_from_db.force_raw_edit:
-                            requirement['raw_requirement'] = line
-                        else:
-                            # Determine completed status
-                            requirement['completed'] = re.search(r'\[([XOU])\]', line).group(1)
-
-                            # Determine start and finish dates
-                            requirement['start'] = re.search('Start: ([DMY0-9/]+)\s', line).group(1)
-                            requirement['finish'] = re.search('Finish: ([DMY0-9/]+)', line).group(1)
-
-                            # Determine requirement text
-                            requirement['text'] = req_from_db.text
-
-                            # Determine the anime
-                            if req_from_db.anime_title:
-                                requirement['anime'] = req_from_db.anime_title
-                                requirement['link'] = req_from_db.anime_link
-                                requirement['has_set_anime'] = True
-                            else:
-                                requirement['anime'] = re.search('\[.+?\].*?\[(.+?)\]', line).group(1)
-                                requirement['link'] = re.search(r'\((https:\/\/anilist\.co\/anime\/[0-9]+)', line).group(1)
-                                requirement['has_set_anime'] = False
-
-                            requirement['anime_id'] = int(re.search(r'https:\/\/anilist\.co\/anime\/([0-9]+)', requirement['link']).group(1))
-
-                            # Get extra stuff
-                            requirement['extra_newline'] = req_from_db.extra_newline
-
-                            # Handles in-line extra info
-                            requirement['extra'] = get_extra(line)
-
-                        prev_requirement = requirement
-                        requirements.append(requirement)
-                    else:
-                        if not ("### __Winter" in line or "### __Spring" in line or "### __Summer" in line or "### __Fall" in line):
-                            if prev_requirement:
-                                if prev_requirement['force_raw_edit']:
-                                    prev_requirement['raw_requirement'] += '\n' + line
-                                else:
-                                    if prev_requirement['extra'].isspace() or prev_requirement['extra'] == '':
-                                        prev_requirement['extra'] = line
-                                    else:
-                                        prev_requirement['extra'] += ('\n' + line)
-
-                                    requirements[requirements.index(prev_requirement)] = prev_requirement
-                            else:
-                                if parsed_comment['extra'].isspace() or parsed_comment['extra'] == '':
-                                    parsed_comment['extra'] = line
-                                else:
-                                    parsed_comment['extra'] += '\n' + line
+            grouped_lines = remove_sublist(['<hr>'], grouped_lines)
+            
+            for i, group in enumerate(requirements_group):
+                if '---' in group:
+                    group.remove('---')
+                
+                if Utils.MODE_EASY in group:
+                    current_mode = Requirement.EASY
+                    group.remove(Utils.MODE_EASY)
+                elif Utils.MODE_NORMAL in group:
+                    current_mode = Requirement.NORMAL
+                    group.remove(Utils.MODE_NORMAL)
+                elif Utils.MODE_HARD in group:
+                    current_mode = Requirement.HARD
+                    group.remove(Utils.MODE_HARD)
+                elif Utils.MODE_BONUS in group:
+                    current_mode = Requirement.BONUS
+                    group.remove(Utils.MODE_BONUS)
                 else:
-                    prev_requirement = None
+                    pass
+
+                # Check for challenge extra info                
+                if i == len(requirements_group) - 1:
+                    if current_mode == Requirement.DEFAULT:
+                        extra_index = 1
+                    else:
+                        extra_index = 4
+
+                    if i == extra_index:
+                        parsed_comment['extra'] = '\n'.join(group)
+                        break
+
+                for line in group:
+                    requirement = {}
+                    
+                    if len(line) > 0:
+                        requirement['mode'] = current_mode
+                        requirement['bonus'] = line[0] == 'B' and line[1].isdigit()
+                        
+                        if line[0].isdigit() or requirement['bonus']:
+                            requirement['number'] = re.search(r'([0-9]+)[.\)]', line).group(1).zfill(2)
+
+                            if "Seasonal" in submission.challenge.name:
+                                req_from_db = MockRequirement(number=requirement['number'])
+                            elif "Classic" in submission.challenge.name:
+                                req_from_db = MockRequirement(number=requirement['number'])
+                            else:
+                                req_from_db = submission.challenge.requirement_set.get(number=requirement['number'], bonus=requirement['bonus'])
+
+                            requirement['force_raw_edit'] = req_from_db.force_raw_edit
+
+                            if req_from_db.force_raw_edit:
+                                requirement['raw_requirement'] = line
+                            else:
+                                # Determine completed status
+                                requirement['completed'] = re.search(r'\[([XOU])\]', line).group(1)
+
+                                # Determine start and finish dates
+                                try:
+                                    raw_requirement_start = re.search('Start: ([DMY0-9/\-]+)\s', line).group(1)
+                                except:
+                                    parsed_comment['is_new_format'] = True
+                                    parsed_comment = {**parsed_comment, **Utils.parse_new_requirements(submission, response)}
+                                    
+                                    return parsed_comment
+
+                                requirement['start'] = convert_date(raw_requirement_start)
+                                requirement['finish'] = convert_date(re.search('Finish: ([DMY0-9/\-]+)', line).group(1))
+
+                                # Determine requirement text
+                                requirement['text'] = req_from_db.text
+
+                                # Determine the anime
+                                if req_from_db.anime_title:
+                                    requirement['anime'] = req_from_db.anime_title
+                                    requirement['link'] = req_from_db.anime_link
+                                    requirement['has_set_anime'] = True
+                                else:
+                                    requirement['anime'] = re.search('\[.+?\].*?\[(.+?)\]', line).group(1)
+                                    requirement['link'] = re.search(r'\((https:\/\/anilist\.co\/anime\/[0-9]+)', line).group(1)
+                                    requirement['has_set_anime'] = False
+
+                                requirement['anime_id'] = int(re.search(r'https:\/\/anilist\.co\/anime\/([0-9]+)', requirement['link']).group(1))
+
+                                # Get extra stuff
+                                requirement['extra_newline'] = req_from_db.extra_newline
+
+                                # Handles in-line extra info
+                                requirement['extra'] = get_extra(line)
+
+                            prev_requirement = requirement
+                            requirements.append(requirement)
+                        else:
+                            if not ("### __Winter" in line or "### __Spring" in line or "### __Summer" in line or "### __Fall" in line):
+                                if prev_requirement:
+                                    if prev_requirement['force_raw_edit']:
+                                        prev_requirement['raw_requirement'] += '\n' + line
+                                    else:
+                                        if prev_requirement['extra'].isspace() or prev_requirement['extra'] == '':
+                                            prev_requirement['extra'] = line
+                                        else:
+                                            prev_requirement['extra'] += ('\n' + line)
+
+                                        requirements[requirements.index(prev_requirement)] = prev_requirement
+                    else:
+                        prev_requirement = None
 
             parsed_comment['requirements'] = requirements
             parsed_comment['failed'] = False
@@ -266,50 +506,68 @@ class Utils(object):
         for requirement in requirements_list:
             req = {}
 
-            req['number'] = requirement.number
+            req['number'] = str(requirement.number).zfill(2)
             req['bonus'] = requirement.bonus
-            req['text'] = requirement.text
+
+            if category == Challenge.CLASSIC and request.POST.get('format', 'old') == 'new':
+                if req['number'] == '01':
+                    season = 'Winter'
+                    offset = 0
+                elif req['number'] == '11':
+                    season = 'Spring'
+                    offset = 10
+                elif req['number'] == '21':
+                    season = 'Summer'
+                    offset = 20
+                elif req['number'] == '31':
+                    season = 'Fall'
+                    offset = 30
+                
+                req['text'] = '{} {} Anime'.format(ordinal(int(req['number']) - offset), season)
+            else:
+                req['text'] = requirement.text
+
             req['extra_newline'] = requirement.extra_newline
 
             if requirement.force_raw_edit:
                 req['force_raw_edit'] = True
-                req['raw_requirement'] = request.POST.get('requirement-raw-{}'.format(requirement.number), requirement.raw_requirement).strip()
+                req['raw_requirement'] = request.POST.get('requirement-raw-{}'.format(req['number']), requirement.raw_requirement).strip()
             else:
                 req['force_raw_edit'] = False
 
                 if requirement.bonus:
-                    req['completed'] = request.POST.get('completed-bonus-{}'.format(requirement.number), Requirement.NOT_COMPLETED).strip()
-
-                    req['start'] = request.POST.get('requirement-start-bonus-{}'.format(requirement.number), "DD/MM/YYYY").strip()
-                    req['finish'] = request.POST.get('requirement-finish-bonus-{}'.format(requirement.number), "DD/MM/YYYY").strip()
+                    req['completed'] = request.POST.get('completed-bonus-{}'.format(req['number']), Requirement.NOT_COMPLETED).strip()
+                    
+                    req['start'] = request.POST.get('requirement-start-bonus-{}'.format(req['number']), "YYYY-MM-DD") if request.POST.get('requirement-start-bonus-{}'.format(req['number']), "YYYY-MM-DD") else 'YYYY-MM-DD'
+                    req['finish'] = request.POST.get('requirement-finish-bonus-{}'.format(req['number']), "YYYY-MM-DD") if request.POST.get('requirement-finish-bonus-{}'.format(req['number']), "YYYY-MM-DD") else 'YYYY-MM-DD'
 
                     if requirement.anime_title:
                         req['anime'] = requirement.anime_title
                         req['link'] = requirement.anime_link
                     else:
-                        req['anime'] = request.POST.get('requirement-anime-bonus-{}'.format(requirement.number), "Anime Title").strip()
-                        req['link'] = request.POST.get('requirement-link-bonus-{}'.format(requirement.number), "https://anilist.co/anime/00000/").strip()
+                        req['anime'] = request.POST.get('requirement-anime-bonus-{}'.format(req['number']), "Anime Title").strip()
+                        req['link'] = request.POST.get('requirement-link-bonus-{}'.format(req['number']), "https://anilist.co/anime/00000/").strip()
                         
-                    req['extra'] = request.POST.get('requirement-extra-bonus-{}'.format(requirement.number), requirement.extra).strip()
+                    req['extra'] = request.POST.get('requirement-extra-bonus-{}'.format(req['number']), requirement.extra).strip()
                 else:
-                    req['completed'] = request.POST.get('completed-{}'.format(requirement.number), Requirement.NOT_COMPLETED).strip()
+                    req['completed'] = request.POST.get('completed-{}'.format(req['number']), Requirement.NOT_COMPLETED).strip()
 
-                    req['start'] = request.POST.get('requirement-start-{}'.format(requirement.number), "DD/MM/YYYY").strip()
-                    req['finish'] = request.POST.get('requirement-finish-{}'.format(requirement.number), "DD/MM/YYYY").strip()
+                    req['start'] =  request.POST.get('requirement-start-{}'.format(req['number']), "YYYY-MM-DD") if request.POST.get('requirement-start-{}'.format(req['number']), "YYYY-MM-DD") else 'YYYY-MM-DD'
+                    req['finish'] = request.POST.get('requirement-finish-{}'.format(req['number']), "YYYY-MM-DD") if request.POST.get('requirement-finish-{}'.format(req['number']), "YYYY-MM-DD") else 'YYYY-MM-DD'
 
                     if requirement.anime_title:
                         req['anime'] = requirement.anime_title
                         req['link'] = requirement.anime_link
                     else:
-                        req['anime'] = request.POST.get('requirement-anime-{}'.format(requirement.number), "Anime Title").strip()
-                        req['link'] = request.POST.get('requirement-link-{}'.format(requirement.number), "https://anilist.co/anime/00000/").strip()
+                        req['anime'] = request.POST.get('requirement-anime-{}'.format(req['number']), "Anime Title").strip()
+                        req['link'] = request.POST.get('requirement-link-{}'.format(req['number']), "https://anilist.co/anime/00000/").strip()
 
-                    req['extra'] = request.POST.get('requirement-extra-{}'.format(requirement.number), requirement.extra).strip()
+                    req['extra'] = request.POST.get('requirement-extra-{}'.format(req['number']), requirement.extra).strip()
 
             if requirement.bonus:
-                req['mode'] = request.POST.get('mode-bonus-{}'.format(requirement.number), requirement.mode).strip()
+                req['mode'] = request.POST.get('mode-bonus-{}'.format(req['number']), requirement.mode).strip()
             else:
-                req['mode'] = request.POST.get('mode-{}'.format(requirement.number), requirement.mode).strip()
+                req['mode'] = request.POST.get('mode-{}'.format(req['number']), requirement.mode).strip()
 
             reqs.append(req)
         
@@ -322,84 +580,82 @@ class Utils(object):
                 post_link = "https://anilist.co/forum/thread/{}/comment/{}".format(prerequisite_challenge.challenge.thread_id, prerequisite_challenge.comment_id)
             except Exception as err:
                 post_link = "https://anilist.co/forum/thread/0000/comment/00000"
-
-                print(err)
             
             comment += "[{prerequisite_name}]({post_link}) Finish Date: {finish_date}\n".format(prerequisite_name=prerequisite.name,
                                                                                        post_link=post_link,
-                                                                                       finish_date=request.POST.get('prerequisite-' + prerequisite.name + '-finish', 'DD/MM/YYYY').strip())
+                                                                                       finish_date=request.POST.get('prerequisite-' + prerequisite.name + '-finish', "YYYY-MM-DD"))
 
         if challenge.prerequisites.count() > 0:
             comment += '\n'
         
         # Dates Section
+        challenge_start = request.POST.get('challenge-start', "YYYY-MM-DD") if request.POST.get('challenge-start', "YYYY-MM-DD") else 'YYYY-MM-DD'
+        challenge_finish = request.POST.get('challenge-finish', "YYYY-MM-DD") if request.POST.get('challenge-finish', "YYYY-MM-DD") else 'YYYY-MM-DD'
+
+        comment += "Challenge Start Date: {start}\nChallenge Finish Date: {finish}\n".format(start=challenge_start,
+                                                                                             finish=challenge_finish)
+        
         if challenge.allows_up_to_date:
-            comment += "Challenge Start Date: {start}\nChallenge Finish Date: {finish}\nLegend: [X] = Completed [O] = Not Completed [U] = Up-to-date\n\n".format(start=request.POST.get('challenge-start', 'DD/MM/YYYY').strip(),
-                                                                                                                                            finish=request.POST.get('challenge-finish', 'DD/MM/YYYY').strip())
+            comment += "Legend: [X] = Completed [O] = Not Completed [U] = Up-to-date\n\n"
         else:
-            comment += "Challenge Start Date: {start}\nChallenge Finish Date: {finish}\nLegend: [X] = Completed [O] = Not Completed\n\n".format(start=request.POST.get('challenge-start', 'DD/MM/YYYY').strip(),
-                                                                                                                                            finish=request.POST.get('challenge-finish', 'DD/MM/YYYY').strip())
+            comment += "Legend: [X] = Completed [O] = Not Completed\n\n"
+
+        # Rule Tag for new format
+        if request.POST.get('format', 'old') == 'new':
+            comment += '<hr>\n\n'
 
         reqs = Utils.split_by_key(reqs, 'mode')
 
         if category == Challenge.TIMED or category == Challenge.TIER or category == Challenge.COLLECTION or category == Challenge.PUZZLE or category == Challenge.SPECIAL:
             for requirement in reqs[Requirement.DEFAULT]:
-                comment = comment + Utils.create_requirement_string(requirement)
+                comment = comment + Utils.create_requirement_string(requirement, request.POST.get('format', 'old'))
         elif category == Challenge.CLASSIC:
-            classic_year = re.search(r'([0-9]+)', challenge.name).group(1)
-            
             for requirement in reqs[Requirement.DEFAULT]:
-                if requirement['number'] == 1:
-                    comment = comment + "### __Winter {}__\n".format(classic_year)
-                elif requirement['number'] == 11:
-                    comment = comment + "\n### __Spring {}__\n".format(classic_year)
-                elif requirement['number'] == 21:
-                    comment = comment + "\n### __Summer {}__\n".format(classic_year)
-                elif requirement['number'] == 31:
-                    comment = comment + "\n### __Fall {}__\n".format(classic_year)
+                if requirement['number'] == '01':
+                    comment = comment + "### __Winter__\n"
+                elif requirement['number'] == '11':
+                    if request.POST.get('format', 'old') == 'new':
+                        comment = comment + "\n<hr>\n"
+                        
+                    comment = comment + "\n### __Spring__\n"
+                elif requirement['number'] == '21':
+                    if request.POST.get('format', 'old') == 'new':
+                        comment = comment + "\n<hr>\n"
+                        
+                    comment = comment + "\n### __Summer__\n"
+                elif requirement['number'] == '31':
+                    if request.POST.get('format', 'old') == 'new':
+                        comment = comment + "\n<hr>\n"
+                        
+                    comment = comment + "\n### __Fall__\n"
                     
-                comment = comment + Utils.create_requirement_string(requirement)
+                comment = comment + Utils.create_requirement_string(requirement, request.POST.get('format', 'old'))
         elif category == Challenge.GENRE:
             if reqs[Requirement.EASY]:
-                comment = comment + "\n---\n__Mode: Easy__\n"
+                comment = comment + "__Mode: Easy__\n"
                 
                 for requirement in sorted(reqs[Requirement.EASY], key=itemgetter('number')):
-                    if requirement['bonus']:
-                        comment = comment + 'B' + Utils.create_requirement_string(requirement)
-                    else:
-                        comment = comment + Utils.create_requirement_string(requirement)
+                    comment = comment + Utils.create_requirement_string(requirement, request.POST.get('format', 'old'))
             if reqs[Requirement.NORMAL]:
                 comment = comment + "\n---\n__Mode: Normal__\n"
 
                 for requirement in sorted(reqs[Requirement.NORMAL], key=itemgetter('number')):
-                    if requirement['bonus']:
-                        comment = comment + 'B' + Utils.create_requirement_string(requirement)
-                    else:
-                        comment = comment + Utils.create_requirement_string(requirement)
+                    comment = comment + Utils.create_requirement_string(requirement, request.POST.get('format', 'old'))
             if reqs[Requirement.HARD]:
                 comment = comment + "\n---\n__Mode: Hard__\n"
 
                 for requirement in sorted(reqs[Requirement.HARD], key=itemgetter('number')):
-                    if requirement['bonus']:
-                        comment = comment + 'B' + Utils.create_requirement_string(requirement)
-                    else:
-                        comment = comment + Utils.create_requirement_string(requirement)
+                    comment = comment + Utils.create_requirement_string(requirement, request.POST.get('format', 'old'))
             if reqs[Requirement.BONUS]:
                 comment = comment + "\n---\n__Bonus__\n"
 
                 for requirement in sorted(reqs[Requirement.BONUS], key=itemgetter('number')):
-                    if requirement['bonus']:
-                        comment = comment + 'B' + Utils.create_requirement_string(requirement)
-                    else:
-                        comment = comment + Utils.create_requirement_string(requirement)
+                    comment = comment + Utils.create_requirement_string(requirement, request.POST.get('format', 'old'))
             if reqs[Requirement.DEFAULT]:
                 comment = comment + "\n---\n__Misc__\n"
 
                 for requirement in sorted(reqs[Requirement.DEFAULT], key=itemgetter('number')):
-                    if requirement['bonus']:
-                        comment = comment + 'B' + Utils.create_requirement_string(requirement)
-                    else:
-                        comment = comment + Utils.create_requirement_string(requirement)
+                    comment = comment + Utils.create_requirement_string(requirement, request.POST.get('format', 'old'))
         else:
             print("Not implemented...")
 
@@ -471,7 +727,7 @@ class Utils(object):
                     
                     mode = get_requirement_mode(i, easy_index, normal_index, hard_index, bonus_index)
 
-                    bonus = line[0] == 'B'
+                    bonus = line[0] == 'B' and line[1].isdigit()
 
                     if line[0].isdigit() or bonus:
                         line = line.rstrip()
@@ -480,16 +736,18 @@ class Utils(object):
 
                         try:
                             # Determine requirement text
-                            text_regex = re.search('\_\_(.*)\_\_', line)
+                            text_regex = re.search(r'\_\_(.*)\_\_', line)
 
                             has_anime_title = False
 
                             if text_regex != None:
                                 text = text_regex.group(1)
+
+                                line = line.replace(text, '')
                             else:
                                 text = ' '
-
-                            anime_title = re.search('\[.+?\].*?\[(.+?)\]', line).group(1)
+                                
+                            anime_title = re.search(r'\[(.+?)\]', line).group(1)
 
                             if anime_title != "Anime Title":
                                 anime_link = re.search(r'\((https:\/\/anilist\.co\/anime\/[0-9\/]+)\)', line).group(1)
