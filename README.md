@@ -42,4 +42,4 @@ For all tests, run:
 `docker-compose run web python manage.py test`
 
 ## Contributing
-TO DO
+See [CONTRIBUTING.md](https://github.com/omn0mn0m/Mion/blob/master/CONTRIBUTING.md).
