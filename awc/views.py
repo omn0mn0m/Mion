@@ -54,6 +54,7 @@ def index(request):
                 # Sets up default challenge info
                 post = request.POST.copy()
                 post['challenge-start'] = date.today().isoformat()
+                post['format'] = 'new' # sets challenge to use the format
                 request.POST = post
 
                 category = challenge.category

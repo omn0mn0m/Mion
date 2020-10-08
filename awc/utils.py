@@ -208,8 +208,6 @@ class Utils(object):
 
             current_mode = Requirement.DEFAULT
 
-            prev_requirement = None
-
             grouped_lines = remove_sublist(['<hr>'], grouped_lines)
             
             # Parse each group
@@ -307,7 +305,6 @@ class Utils(object):
                         requirement['extra'] = ''
                 
                 requirements.append(requirement)
-                prev_requirement = requirement
         except Exception as e:
             parsed_comment = {
                 'failed': True,
@@ -545,7 +542,7 @@ class Utils(object):
                         req['anime'] = requirement.anime_title
                         req['link'] = requirement.anime_link
                     else:
-                        req['anime'] = request.POST.get('requirement-anime-bonus-{}'.format(req['number']), "Anime Title").strip()
+                        req['anime'] = request.POST.get('requirement-anime-bonus-{}'.format(req['number']), "Anime_Title").strip()
                         req['link'] = request.POST.get('requirement-link-bonus-{}'.format(req['number']), "https://anilist.co/anime/00000/").strip()
                         
                     req['extra'] = request.POST.get('requirement-extra-bonus-{}'.format(req['number']), requirement.extra).strip()
@@ -667,16 +664,15 @@ class Utils(object):
     def create_challenge_from_code(thread_id, challenge_code, category):
         lines = challenge_code.splitlines()
 
-        challenge_name = re.search(r'# \_\_(.*)\_\_', lines[0].strip()).group(1)
+        grouped_lines = [list(group) for key, group in groupby(lines, key=lambda line: line != '') if key]
+
+        challenge_name = grouped_lines[0][0].split('__')[1] # "# __Challenge Name__"
 
         if Challenge.objects.filter(name=challenge_name).exists():
             return
-        
-        req_start_index = [i for i, s in enumerate(lines) if 'Legend' in s][0]
 
-        # Determines if the challenge allows "Up to Date" requirement status
-        allows_up_to_date = '[U]' in lines[req_start_index]
-        
+        allows_up_to_date = '[U]' in grouped_lines[1][2]
+
         challenge = Challenge(name=challenge_name,
                               thread_id=thread_id,
                               category=category,
@@ -693,112 +689,229 @@ class Utils(object):
         
         challenge.save()
 
-        # Determines if the challenge has prerequisite challenges
-        prerequisite_lines = [line for line in lines[:req_start_index] if "Link to entry" in line]
+        current_mode = Requirement.DEFAULT
 
-        if prerequisite_lines:
-            for line in prerequisite_lines:
-                prerequisite_name = re.search(r'\[(.*)\]', line.strip()).group(1)
-                prerequisite_challenge = Challenge.objects.get(name__contains=prerequisite_name.split(' ')[0])
-                challenge.prerequisites.add(prerequisite_challenge)
+        grouped_lines = remove_sublist(['<hr>'], grouped_lines)
 
-            challenge.save()
+        for i, group in enumerate(grouped_lines[2:]):
+            print(group)
 
-        easy_index = normal_index = hard_index = bonus_index = -1
+            if '---' in group:
+                group.remove('---')
 
-        prev_requirement = None
+            if Utils.MODE_EASY in group:
+                current_mode = Requirement.EASY
+                group.remove(Utils.MODE_EASY)
+            elif Utils.MODE_NORMAL in group:
+                current_mode = Requirement.NORMAL
+                group.remove(Utils.MODE_NORMAL)
+            elif Utils.MODE_HARD in group:
+                current_mode = Requirement.HARD
+                group.remove(Utils.MODE_HARD)
+            elif Utils.MODE_BONUS in group:
+                current_mode = Requirement.BONUS
+                group.remove(Utils.MODE_BONUS)
+            else:
+                pass
 
-        if needs_requirements:
-            for i, line in enumerate(lines[req_start_index + 2:]):
-                line = line.lstrip()
+            if "### __Winter__" in group:
+                group.remove("### __Winter__")
+            elif "### __Spring__" in group:
+                group.remove("### __Spring__")
+            elif "### __Summer__" in group:
+                group.remove("### __Summer__")
+            elif "### __Fall__" in group:
+                group.remove("### __Fall__")
 
-                if Utils.MODE_EASY in line:
-                    easy_index = i
-                elif Utils.MODE_NORMAL in line:
-                    normal_index = i
-                elif Utils.MODE_HARD in line:
-                    hard_index = i
-                elif '__Bonus__' in line:
-                    bonus_index = i
-                elif '---' in line:
-                    pass
-                elif len(line) > 0:
-                    requirement = {}
-                    
-                    mode = get_requirement_mode(i, easy_index, normal_index, hard_index, bonus_index)
+            # TODO Figure out the challenge extra code
 
-                    bonus = line[0] == 'B' and line[1].isdigit()
+            try:
+                mode = current_mode
+                bonus = group[0][0] == 'B' and group[0][1].isdigit()
+                number = re.search(r'([0-9]+)[.\)]', group[0]).group(1)
 
-                    if line[0].isdigit() or bonus:
-                        line = line.rstrip()
+                # Determine requirement text
+                text_regex = re.search(r'\_\_(.*)\_\_', group[0])
 
-                        num_search = re.search(r'([0-9]+)[.\)]', line).group(1)
-
-                        try:
-                            # Determine requirement text
-                            text_regex = re.search(r'\_\_(.*)\_\_', line)
-
-                            has_anime_title = False
-
-                            if text_regex != None:
-                                text = text_regex.group(1)
-
-                                line = line.replace(text, '')
-                            else:
-                                text = ' '
-                                
-                            anime_title = re.search(r'\[(.+?)\]', line).group(1)
-
-                            if anime_title != "Anime Title":
-                                anime_link = re.search(r'\((https:\/\/anilist\.co\/anime\/[0-9\/]+)\)', line).group(1)
-                                has_anime_title = True
-
-                            # Handles in-line extra info
-                            extra = get_extra(line)
-
-                            requirement = Requirement(number=num_search,
-                                                      mode=mode,
-                                                      challenge=challenge,
-                                                      text=text,
-                                                      extra=extra,
-                                                      bonus=bonus)
-                        except:
-                            # Something with the formatting is weird so raw editing will be enforced
-                            requirement = Requirement(number = num_search,
-                                                      mode=mode,
-                                                      challenge=challenge,
-                                                      text='',
-                                                      extra='',
-                                                      bonus=bonus,
-                                                      force_raw_edit=True,
-                                                      raw_requirement=line)
-
-                        if has_anime_title:
-                            requirement.anime_title = anime_title
-                            requirement.anime_link = anime_link
-
-                        prev_requirement = requirement
-
-                        requirement.save()
-                    else:
-                        # Handles new line extra info
-                        if prev_requirement:
-                            if prev_requirement.force_raw_edit:
-                                prev_requirement.raw_requirement += '\n' + line
-                            else:
-                                if prev_requirement.extra.isspace() or prev_requirement.extra == '':
-                                    prev_requirement.extra = line
-                                    prev_requirement.extra_newline = True
-                                else:
-                                    prev_requirement.extra += ('\n' + line)
-
-                            prev_requirement.save()
-                        else:
-                            if challenge.extra.isspace() or challenge.extra == '':
-                                challenge.extra = line
-                            else:
-                                challenge.extra += '\n' + line
-
-                            challenge.save()
+                if text_regex != None:
+                    text = text_regex.group(1)
                 else:
-                    prev_requirement = None
+                    text = ' '
+
+                anime_title = re.search('\[(.+?)\]', group[1]).group(1)
+
+                has_anime_title = anime_title != 'Anime_Title'
+
+                if has_anime_title:
+                    anime_link = re.search(r'\((https:\/\/anilist\.co\/anime\/[0-9]+)', group[1]).group(1)
+
+                # Handles in-line extra info
+                extra_split = group[2].split('//', 1)
+
+                if len(extra_split) > 1:
+                    extra = extra_split[1]
+                else:
+                    extra = ''
+
+                requirement = Requirement(number=number,
+                                          mode=mode,
+                                          challenge=challenge,
+                                          text=text,
+                                          extra=extra,
+                                          bonus=bonus)
+            except:
+                #Something with the formatting is weird so raw editing will be enforced
+                requirement = Requirement(number=number,
+                                          mode=mode,
+                                          challenge=challenge,
+                                          text='',
+                                          extra='',
+                                          bonus=bonus,
+                                          force_raw_edit=True,
+                                          raw_requirement=line)
+
+            if has_anime_title:
+                requirement.anime_title = anime_title
+                requirement.anime_link = anime_link
+                
+            requirement.save()
+                
+    # @staticmethod
+    # def create_challenge_from_code(thread_id, challenge_code, category):
+    #     lines = challenge_code.splitlines()
+
+    #     challenge_name = re.search(r'# \_\_(.*)\_\_', lines[0].strip()).group(1)
+
+    #     if Challenge.objects.filter(name=challenge_name).exists():
+    #         return
+        
+    #     req_start_index = [i for i, s in enumerate(lines) if 'Legend' in s][0]
+
+    #     # Determines if the challenge allows "Up to Date" requirement status
+    #     allows_up_to_date = '[U]' in lines[req_start_index]
+        
+    #     challenge = Challenge(name=challenge_name,
+    #                           thread_id=thread_id,
+    #                           category=category,
+    #                           allows_up_to_date=allows_up_to_date)
+
+    #     # Determines if the challenge has unique requirements
+    #     if "Seasonal" in challenge_name:
+    #         needs_requirements = False
+    #         challenge.extra = "Favourite (Optional): [Anime Title](https://anilist.co/anime/00000/)"
+    #     elif "Classic" in challenge_name:
+    #         needs_requirements = False
+    #     else:
+    #         needs_requirements = True
+        
+    #     challenge.save()
+
+    #     # Determines if the challenge has prerequisite challenges
+    #     prerequisite_lines = [line for line in lines[:req_start_index] if "Link to entry" in line]
+
+    #     if prerequisite_lines:
+    #         for line in prerequisite_lines:
+    #             prerequisite_name = re.search(r'\[(.*)\]', line.strip()).group(1)
+    #             prerequisite_challenge = Challenge.objects.get(name__contains=prerequisite_name.split(' ')[0])
+    #             challenge.prerequisites.add(prerequisite_challenge)
+
+    #         challenge.save()
+
+    #     easy_index = normal_index = hard_index = bonus_index = -1
+
+    #     prev_requirement = None
+
+    #     if needs_requirements:
+    #         for i, line in enumerate(lines[req_start_index + 2:]):
+    #             line = line.lstrip()
+
+    #             if Utils.MODE_EASY in line:
+    #                 easy_index = i
+    #             elif Utils.MODE_NORMAL in line:
+    #                 normal_index = i
+    #             elif Utils.MODE_HARD in line:
+    #                 hard_index = i
+    #             elif '__Bonus__' in line:
+    #                 bonus_index = i
+    #             elif '---' in line:
+    #                 pass
+    #             elif len(line) > 0:
+    #                 #requirement = {}
+                    
+    #                 mode = get_requirement_mode(i, easy_index, normal_index, hard_index, bonus_index)
+
+    #                 bonus = line[0] == 'B' and line[1].isdigit()
+
+    #                 if line[0].isdigit() or bonus:
+    #                     line = line.rstrip()
+
+    #                     num_search = re.search(r'([0-9]+)[.\)]', line).group(1)
+
+    #                     try:
+    #                         # Determine requirement text
+    #                         text_regex = re.search(r'\_\_(.*)\_\_', line)
+
+    #                         has_anime_title = False
+
+    #                         if text_regex != None:
+    #                             text = text_regex.group(1)
+
+    #                             line = line.replace(text, '')
+    #                         else:
+    #                             text = ' '
+                                
+    #                         anime_title = re.search(r'\[(.+?)\]', line).group(1)
+
+    #                         if anime_title != "Anime Title":
+    #                             anime_link = re.search(r'\((https:\/\/anilist\.co\/anime\/[0-9\/]+)\)', line).group(1)
+    #                             has_anime_title = True
+
+    #                         # Handles in-line extra info
+    #                         extra = get_extra(line)
+
+    #                         requirement = Requirement(number=num_search,
+    #                                                   mode=mode,
+    #                                                   challenge=challenge,
+    #                                                   text=text,
+    #                                                   extra=extra,
+    #                                                   bonus=bonus)
+    #                     except:
+    #                         # Something with the formatting is weird so raw editing will be enforced
+    #                         requirement = Requirement(number = num_search,
+    #                                                   mode=mode,
+    #                                                   challenge=challenge,
+    #                                                   text='',
+    #                                                   extra='',
+    #                                                   bonus=bonus,
+    #                                                   force_raw_edit=True,
+    #                                                   raw_requirement=line)
+
+    #                     if has_anime_title:
+    #                         requirement.anime_title = anime_title
+    #                         requirement.anime_link = anime_link
+
+    #                     prev_requirement = requirement
+
+    #                     requirement.save()
+    #                 else:
+    #                     # Handles new line extra info
+    #                     if prev_requirement:
+    #                         if prev_requirement.force_raw_edit:
+    #                             prev_requirement.raw_requirement += '\n' + line
+    #                         else:
+    #                             if prev_requirement.extra.isspace() or prev_requirement.extra == '':
+    #                                 prev_requirement.extra = line
+    #                                 prev_requirement.extra_newline = True
+    #                             else:
+    #                                 prev_requirement.extra += ('\n' + line)
+
+    #                         prev_requirement.save()
+    #                     else:
+    #                         if challenge.extra.isspace() or challenge.extra == '':
+    #                             challenge.extra = line
+    #                         else:
+    #                             challenge.extra += '\n' + line
+
+    #                         challenge.save()
+    #             else:
+    #                 prev_requirement = None
