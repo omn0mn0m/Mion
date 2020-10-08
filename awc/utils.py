@@ -656,7 +656,10 @@ class Utils(object):
         else:
             print("Not implemented...")
 
-        comment = comment + '\n<hr>\n\n' + request.POST.get('challenge-extra', challenge_extra).strip()
+        extra = request.POST.get('challenge-extra', challenge_extra).strip()
+
+        if extra:
+            comment = comment + '\n<hr>\n\n' + request.POST.get('challenge-extra', challenge_extra).strip()
         
         return comment
 
