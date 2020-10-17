@@ -43,8 +43,13 @@
 
 		  if (val.mediaListEntry != null) {
 		      card.attr('data-completed', val.mediaListEntry.status);
-		      card.attr('data-start', val.mediaListEntry.startedAt.day + "/" + val.mediaListEntry.startedAt.month + "/" + val.mediaListEntry.startedAt.year);
-		      card.attr('data-finish', val.mediaListEntry.completedAt.day + "/" + val.mediaListEntry.completedAt.month + "/" + val.mediaListEntry.completedAt.year);
+
+		      var startDate = new Date(val.mediaListEntry.startedAt.year, val.mediaListEntry.startedAt.month - 1, val.mediaListEntry.startedAt.day);
+		      var finishDate = new Date(val.mediaListEntry.completedAt.year, val.mediaListEntry.completedAt.month - 1, val.mediaListEntry.completedAt.day);
+
+		      
+		      card.attr('data-start', startDate.toISOString().split("T")[0]);
+		      card.attr('data-finish', finishDate.toISOString().split("T")[0]);
 		  }
 		  
 		  $('#search-results-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}').append(card);

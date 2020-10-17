@@ -144,11 +144,11 @@
 	  card.querySelector('#completed-' + button.getAttribute('data-req-num')).value = 'O';
       }
 
-      if (button.getAttribute('data-start') != "None/None/None" && button.getAttribute('data-start') != "//") {
+      if (button.getAttribute('data-start') != "None-None-None" && button.getAttribute('data-start') != "--") {
 	  card.querySelector('#requirement-start-' + button.getAttribute('data-req-num')).value = button.getAttribute('data-start');
       }
 
-      if (button.getAttribute('data-finish') != "None/None/None" && button.getAttribute('data-start') != "//") {
+      if (button.getAttribute('data-finish') != "None-None-None" && button.getAttribute('data-start') != "--") {
 	  card.querySelector('#requirement-finish-' + button.getAttribute('data-req-num')).value = button.getAttribute('data-finish');
       }
   }
