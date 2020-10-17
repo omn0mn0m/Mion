@@ -177,9 +177,13 @@ def edit(request, challenge_name):
                     if media['mediaListEntry'] != None and type(media['mediaListEntry']['startedAt']) is dict:
                         if None not in media['mediaListEntry']['startedAt'].values():
                             media['mediaListEntry']['startedAt'] = date(media['mediaListEntry']['startedAt']['year'], media['mediaListEntry']['startedAt']['month'], media['mediaListEntry']['startedAt']['day']).isoformat()
+                        else:
+                            media['mediaListEntry']['startedAt'] = "YYYY-MM-DD"
 
                         if None not in media['mediaListEntry']['completedAt'].values():
                             media['mediaListEntry']['completedAt'] = date(media['mediaListEntry']['completedAt']['year'], media['mediaListEntry']['completedAt']['month'], media['mediaListEntry']['completedAt']['day']).isoformat()
+                        else:
+                            media['mediaListEntry']['completedAt'] = "YYYY-MM-DD"
 
                     parsed_response['requirements'][i]['media'] = media
 
