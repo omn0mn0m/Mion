@@ -521,6 +521,8 @@ class Utils(object):
                     offset = 30
                 
                 req['text'] = '{} {} Anime'.format(ordinal(int(req['number']) - offset), season)
+            elif "Seasonal" in challenge.name:
+                req['text'] = '{} Anime'.format(ordinal(int(req['number'])))
             else:
                 req['text'] = requirement.text
 
@@ -684,7 +686,7 @@ class Utils(object):
         # Determines if the challenge has unique requirements
         if "Seasonal" in challenge_name:
             needs_requirements = False
-            challenge.extra = "Favourite (Optional): [Anime_Title](https://anilist.co/anime/00000/)"
+            challenge.extra = "Seasonal Badge Vote (Optional): [Anime_Title](https://anilist.co/anime/00000/)"
         elif "Classic" in challenge_name:
             needs_requirements = False
         else:
@@ -728,56 +730,57 @@ class Utils(object):
 
             # TODO Figure out the challenge extra code
 
-            try:
-                mode = current_mode
-                bonus = group[0][0] == 'B' and group[0][1].isdigit()
-                number = re.search(r'([0-9]+)[.\)]', group[0]).group(1)
+            if needs_requirements:
+                try:
+                    mode = current_mode
+                    bonus = group[0][0] == 'B' and group[0][1].isdigit()
+                    number = re.search(r'([0-9]+)[.\)]', group[0]).group(1)
 
-                # Determine requirement text
-                text_regex = re.search(r'\_\_(.*)\_\_', group[0])
+                    # Determine requirement text
+                    text_regex = re.search(r'\_\_(.*)\_\_', group[0])
 
-                if text_regex != None:
-                    text = text_regex.group(1)
-                else:
-                    text = ' '
+                    if text_regex != None:
+                        text = text_regex.group(1)
+                    else:
+                        text = ' '
 
-                anime_title = re.search('\[(.+?)\]', group[1]).group(1)
+                    anime_title = re.search('\[(.+?)\]', group[1]).group(1)
 
-                has_anime_title = anime_title != 'Anime_Title'
+                    has_anime_title = anime_title != 'Anime_Title'
+
+                    if has_anime_title:
+                        anime_link = re.search(r'\((https:\/\/anilist\.co\/anime\/[0-9]+)', group[1]).group(1)
+
+                    # Handles in-line extra info
+                    extra_split = group[2].split('//', 1)
+
+                    if len(extra_split) > 1:
+                        extra = extra_split[1]
+                    else:
+                        extra = ''
+
+                    requirement = Requirement(number=number,
+                                              mode=mode,
+                                              challenge=challenge,
+                                              text=text,
+                                              extra=extra,
+                                              bonus=bonus)
+                except:
+                    #Something with the formatting is weird so raw editing will be enforced
+                    requirement = Requirement(number=number,
+                                              mode=mode,
+                                              challenge=challenge,
+                                              text='',
+                                              extra='',
+                                              bonus=bonus,
+                                              force_raw_edit=True,
+                                              raw_requirement=line)
 
                 if has_anime_title:
-                    anime_link = re.search(r'\((https:\/\/anilist\.co\/anime\/[0-9]+)', group[1]).group(1)
+                    requirement.anime_title = anime_title
+                    requirement.anime_link = anime_link
 
-                # Handles in-line extra info
-                extra_split = group[2].split('//', 1)
-
-                if len(extra_split) > 1:
-                    extra = extra_split[1]
-                else:
-                    extra = ''
-
-                requirement = Requirement(number=number,
-                                          mode=mode,
-                                          challenge=challenge,
-                                          text=text,
-                                          extra=extra,
-                                          bonus=bonus)
-            except:
-                #Something with the formatting is weird so raw editing will be enforced
-                requirement = Requirement(number=number,
-                                          mode=mode,
-                                          challenge=challenge,
-                                          text='',
-                                          extra='',
-                                          bonus=bonus,
-                                          force_raw_edit=True,
-                                          raw_requirement=line)
-
-            if has_anime_title:
-                requirement.anime_title = anime_title
-                requirement.anime_link = anime_link
-                
-            requirement.save()
+                requirement.save()
                 
     # @staticmethod
     # def create_challenge_from_code(thread_id, challenge_code, category):
