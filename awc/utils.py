@@ -54,20 +54,21 @@ def convert_date(raw_date):
         return date_object.strftime('%Y-%m-%d')
 
 def convert_extra(raw_extra):
-    # Replaces old separators with //
-    extra = raw_extra.replace('\n', ' // ')
-    extra = extra.replace(',', ' //')
+    # Splits the old extra into parts
+    raw_extra = raw_extra.replace(', ', '\n')
+    extras = raw_extra.split('\n')
+
+    extras = [extra.strip('_') for extra in extras]
+
+    extra = ' // '.join(extras)
 
     # Replaces old wrappers
     extra = extra.replace('~!', '').replace('!~', '')
 
-    if extra.startswith('_') and extra.endswith('_'):
-        extra = extra[1:-1]
-
     # Replaces old screenshots with new screenshots
     extra = extra.replace('Screenshot:', '').replace('Screenshots:', '')
     extra = extra.replace('img(', '[Screenshot](')
-    
+
     extra = extra.strip() # Removes any weird lingering spaces
     
     return extra
@@ -574,6 +575,8 @@ class Utils(object):
 
         # Add prerequitites section
         for prerequisite in challenge.prerequisites.all():
+            prerequisite_finish = request.POST.get('prerequisite-' + prerequisite.name + '-finish', "YYYY-MM-DD") if request.POST.get('prerequisite-' + prerequisite.name + '-finish', "YYYY-MM-DD") else 'YYYY-MM-DD'
+            
             try:
                 prerequisite_challenge = user.submission_set.get(challenge__name=prerequisite.name)
                 post_link = "https://anilist.co/forum/thread/{}/comment/{}".format(prerequisite_challenge.challenge.thread_id, prerequisite_challenge.comment_id)
@@ -582,7 +585,7 @@ class Utils(object):
             
             comment += "[{prerequisite_name}]({post_link}) Finish Date: {finish_date}\n".format(prerequisite_name=prerequisite.name,
                                                                                        post_link=post_link,
-                                                                                       finish_date=request.POST.get('prerequisite-' + prerequisite.name + '-finish', "YYYY-MM-DD"))
+                                                                                       finish_date=prerequisite_finish)
 
         if challenge.prerequisites.count() > 0:
             comment += '\n'
