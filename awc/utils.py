@@ -678,16 +678,14 @@ class Utils(object):
 
         if Challenge.objects.filter(name=challenge_name).exists():
             return
-
-        allows_up_to_date = '[U]' in grouped_lines[1][2]
-
+        
         challenge = Challenge(name=challenge_name,
                               thread_id=thread_id,
-                              category=category,
-                              allows_up_to_date=allows_up_to_date)
+                              category=category)
 
         # Determines if the challenge has unique requirements
         if "Seasonal" in challenge_name:
+            challenge.allows_up_to_date = True
             needs_requirements = False
             challenge.extra = "Seasonal Badge Vote (Optional): [Anime_Title](https://anilist.co/anime/00000/)"
         elif "Classic" in challenge_name:
@@ -702,8 +700,6 @@ class Utils(object):
         grouped_lines = remove_sublist(['<hr>'], grouped_lines)
 
         for i, group in enumerate(grouped_lines[2:]):
-            print(group)
-
             if '---' in group:
                 group.remove('---')
 
