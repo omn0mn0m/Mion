@@ -693,28 +693,35 @@ class Utils(object):
         else:
             needs_requirements = True
         
-        challenge.save()
-
         current_mode = Requirement.DEFAULT
 
         grouped_lines = remove_sublist(['<hr>'], grouped_lines)
+        
+        if category == Challenge.GENRE:
+            last_index = len(grouped_lines)
+        else:
+            last_index = -1
 
-        for i, group in enumerate(grouped_lines[2:]):
+            challenge.extra = '\n'.join(grouped_lines[-1])
+
+        challenge.save()
+
+        for i, group in enumerate(grouped_lines[2:last_index]):
             if '---' in group:
                 group.remove('---')
 
             if Utils.MODE_EASY in group:
                 current_mode = Requirement.EASY
-                group.remove(Utils.MODE_EASY)
+                continue
             elif Utils.MODE_NORMAL in group:
                 current_mode = Requirement.NORMAL
-                group.remove(Utils.MODE_NORMAL)
+                continue
             elif Utils.MODE_HARD in group:
                 current_mode = Requirement.HARD
-                group.remove(Utils.MODE_HARD)
+                continue
             elif Utils.MODE_BONUS in group:
                 current_mode = Requirement.BONUS
-                group.remove(Utils.MODE_BONUS)
+                continue
             else:
                 pass
 
