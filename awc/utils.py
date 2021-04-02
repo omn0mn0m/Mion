@@ -12,6 +12,18 @@ from .models import Challenge, Requirement
 def remove_sublist(sublist, nested_list):
     return [i for i in nested_list if i != sublist]
 
+def remove_and_count_sublist(sublist, nested_list):
+    count = 0
+    fixed_list = []
+    
+    for i in nested_list:
+        if i == sublist:
+            count += 1
+        else:
+            fixed_list.append(i)
+
+    return fixed_list, count
+
 def get_extra(line):
     extra = ''
     
@@ -695,14 +707,19 @@ class Utils(object):
         
         current_mode = Requirement.DEFAULT
 
-        grouped_lines = remove_sublist(['<hr>'], grouped_lines)
+        grouped_lines, num_hr = remove_and_count_sublist(['<hr>'], grouped_lines)
+
+        print(num_hr)
         
         if category == Challenge.GENRE:
             last_index = len(grouped_lines)
         else:
-            last_index = -1
-
-            challenge.extra = '\n'.join(grouped_lines[-1])
+            if num_hr == 2:
+                last_index = -1
+                
+                challenge.extra = '\n'.join(grouped_lines[-1])
+            else:
+                last_index = len(grouped_lines)
 
         challenge.save()
 
