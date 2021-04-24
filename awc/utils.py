@@ -574,7 +574,10 @@ class Utils(object):
                         req['anime'] = request.POST.get('requirement-anime-{}'.format(req['number']), "Anime_Title").strip()
                         req['link'] = request.POST.get('requirement-link-{}'.format(req['number']), "https://anilist.co/anime/00000/").strip()
 
-                    req['extra'] = request.POST.get('requirement-extra-{}'.format(req['number']), requirement.extra).strip()
+                    if ("Seasonal" in challenge.name) and not request.POST.get('requirement-extra-{}'.format(req['number'])):
+                        req['extra'] = 'Ep: XX/XX'
+                    else:
+                        req['extra'] = request.POST.get('requirement-extra-{}'.format(req['number']), requirement.extra).strip()
 
             if requirement.bonus:
                 req['mode'] = request.POST.get('mode-bonus-{}'.format(req['number']), requirement.mode).strip()
