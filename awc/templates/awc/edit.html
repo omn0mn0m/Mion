@@ -18,6 +18,8 @@
 {% if not response.failed %}
 <form method="post" class="container-fluid">
   {% csrf_token %}
+  <input type="hidden" name="legend" value='{{ response.legend }}'>
+  
   <div class="form-group row">
     <div class="col">
       <label for="challenge-start">Challenge Start</label>

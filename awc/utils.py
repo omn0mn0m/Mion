@@ -353,7 +353,7 @@ class Utils(object):
 
             parsed_comment['legend'] = {}
             legend_matches = re.findall(r'(\[.?\]) = ([a-zA-Z0-9\- ]+)', lines[req_start_index])
-            
+
             for match in legend_matches:
                 parsed_comment['legend'][match[1].strip()] = match[0][1:-1]
 
@@ -442,7 +442,7 @@ class Utils(object):
                                 requirement['raw_requirement'] = line
                             else:
                                 # Determine completed status
-                                requirement['completed'] = re.search(r'\[([XOU])\]', line).group(1)
+                                requirement['completed'] = re.search(r'[0-9]+\) \[(.+?)\]', line).group(1)
 
                                 # Determine start and finish dates
                                 try:
@@ -618,10 +618,15 @@ class Utils(object):
         comment += "Challenge Start Date: {start}\nChallenge Finish Date: {finish}\n".format(start=challenge_start,
                                                                                              finish=challenge_finish)
         
-        if challenge.allows_up_to_date:
-            comment += "Legend: [X] = Completed [O] = Not Completed [U] = Up-to-date\n\n"
-        else:
-            comment += "Legend: [X] = Completed [O] = Not Completed\n\n"
+        legend = json.loads(request.POST.get('legend', '{"Completed": "X", "Not Completed": "O"}').replace("'", '"'))
+
+        comment += "Legend: "
+
+        for key, value in legend.items():
+            comment += "[{value}] = {key} ".format(key=key,
+                                                  value=value)
+
+        comment += "\n\n"
 
         # Rule Tag for new format
         if request.POST.get('format', 'old') == 'new':
