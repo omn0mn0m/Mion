@@ -42,9 +42,9 @@
     </div>
     <div class="form-group form-row">
       <select class="col-md-3 form-control mr-2" name="completed-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}" id="completed-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}">
-	<option value="O" {% if requirement.completed == "O" %}selected{% endif %}>Not Completed</option>
-	<option value="X" {% if requirement.completed == "X" %}selected{% endif %}>Completed</option>
-	{% if challenge.allows_up_to_date %}<option value="U" {% if requirement.completed == "U" %}selected{% endif %}>Up-to-date</option>{% endif %}
+        {% for key, value in response.legend.items %}
+        <option value="{{ value }}" {% if requirement.completed == value %}selected{% endif %}>{{ key }}</option>
+        {% endfor %}
       </select>
       
       <label class="col-md-1 col-form-label" for="requirement-start-{% if requirement.bonus %}bonus-{% endif %}{{ requirement.number }}">Start</label>	

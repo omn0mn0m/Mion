@@ -351,6 +351,12 @@ class Utils(object):
             
             req_start_index = [i for i, s in enumerate(lines) if 'Legend' in s][0]
 
+            parsed_comment['legend'] = {}
+            legend_matches = re.findall(r'(\[.?\]) = ([a-zA-Z0-9\- ]+)', lines[req_start_index])
+            
+            for match in legend_matches:
+                parsed_comment['legend'][match[1].strip()] = match[0][1:-1]
+
             has_prerequisites = submission.challenge.prerequisites.exists()
 
             if has_prerequisites:
