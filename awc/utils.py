@@ -366,7 +366,10 @@ class Utils(object):
 
                 for line in prerequisite_lines:
                     prerequisite_challenge_name = re.search(r'\[(.+?)\]', line).group(1)
-                    prerequisite_finish_date = re.search(r'Finish Date: ([DMY0-9/\-]+)', line).group(1)
+                    prerequisite_finish_regex = re.search(r'Finish Date: ([DMY0-9/\-]+)', line)
+                    
+                    if prerequisite_finish_regex:
+                        prerequisite_finish_date = prerequisite_finish_regex.group(1)
                     
                     parsed_comment['prerequisites'][prerequisite_challenge_name] = convert_date(prerequisite_finish_date)
 
