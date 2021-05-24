@@ -370,6 +370,8 @@ class Utils(object):
                     
                     if prerequisite_finish_regex:
                         prerequisite_finish_date = prerequisite_finish_regex.group(1)
+                    else:
+                        prerequisite_finish_date = 'YYYY-MM-DD'
                     
                     parsed_comment['prerequisites'][prerequisite_challenge_name] = convert_date(prerequisite_finish_date)
 
