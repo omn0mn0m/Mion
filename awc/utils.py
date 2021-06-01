@@ -703,7 +703,7 @@ class Utils(object):
     def create_challenge_from_code(thread_id, challenge_code, category):
         lines = challenge_code.splitlines()
 
-        grouped_lines = [list(group) for key, group in groupby(lines, key=lambda line: line != '') if key]
+        grouped_lines = [list(group) for key, group in groupby(lines, key=lambda line: line.strip() != '') if key]
 
         challenge_name = grouped_lines[0][0].split('__')[1] # "# __Challenge Name__"
 
@@ -727,8 +727,6 @@ class Utils(object):
         current_mode = Requirement.DEFAULT
 
         grouped_lines, num_hr = remove_and_count_sublist(['<hr>'], grouped_lines)
-
-        print(num_hr)
         
         if category == Challenge.GENRE:
             last_index = len(grouped_lines)
@@ -821,7 +819,7 @@ class Utils(object):
                 if has_anime_title:
                     requirement.anime_title = anime_title
                     requirement.anime_link = anime_link
-
+                
                 requirement.save()
                 
     # @staticmethod
