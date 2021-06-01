@@ -531,7 +531,7 @@ class Utils(object):
             req = {}
 
             req['bonus'] = requirement.bonus
-            if (category == Challenge.GENRE and req['bonus']):
+            if category == Challenge.GENRE and req['bonus']:
                 req['number'] = str(requirement.number)
             else:
                 req['number'] = str(requirement.number).zfill(2)
