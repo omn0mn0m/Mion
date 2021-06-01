@@ -432,7 +432,10 @@ class Utils(object):
                         requirement['bonus'] = line[0] == 'B' and line[1].isdigit()
                         
                         if line[0].isdigit() or requirement['bonus']:
-                            requirement['number'] = re.search(r'([0-9]+)[.\)]', line).group(1).zfill(2)
+                            if requirement['bonus']:
+                                requirement['number'] = re.search(r'([0-9]+)[.\)]', line).group(1)
+                            else:
+                                requirement['number'] = re.search(r'([0-9]+)[.\)]', line).group(1).zfill(2)
 
                             if "Seasonal" in submission.challenge.name:
                                 req_from_db = MockRequirement(number=requirement['number'])
@@ -527,8 +530,11 @@ class Utils(object):
         for requirement in requirements_list:
             req = {}
 
-            req['number'] = str(requirement.number).zfill(2)
             req['bonus'] = requirement.bonus
+            if (category == Challenge.GENRE and req['bonus']):
+                req['number'] = str(requirement.number)
+            else:
+                req['number'] = str(requirement.number).zfill(2)
 
             if category == Challenge.CLASSIC and request.POST.get('format', 'old') == 'new':
                 if req['number'] == '01':
@@ -666,19 +672,16 @@ class Utils(object):
         elif category == Challenge.GENRE:
             if reqs[Requirement.EASY]:
                 comment = comment + "__Mode: Easy__\n"
-                
-                for requirement in sorted(reqs[Requirement.EASY], key=itemgetter('number')):
-                    comment = comment + Utils.create_requirement_string(requirement, request.POST.get('format', 'old'))
+
+                comment = Utils.append_requirement_to_comment(Requirement.EASY, comment, reqs, request)
             if reqs[Requirement.NORMAL]:
                 comment = comment + "\n---\n__Mode: Normal__\n"
 
-                for requirement in sorted(reqs[Requirement.NORMAL], key=itemgetter('number')):
-                    comment = comment + Utils.create_requirement_string(requirement, request.POST.get('format', 'old'))
+                comment = Utils.append_requirement_to_comment(Requirement.NORMAL, comment, reqs, request)
             if reqs[Requirement.HARD]:
                 comment = comment + "\n---\n__Mode: Hard__\n"
 
-                for requirement in sorted(reqs[Requirement.HARD], key=itemgetter('number')):
-                    comment = comment + Utils.create_requirement_string(requirement, request.POST.get('format', 'old'))
+                comment = Utils.append_requirement_to_comment(Requirement.HARD, comment, reqs, request)
             if reqs[Requirement.BONUS]:
                 comment = comment + "\n---\n__Bonus__\n"
 
@@ -697,6 +700,16 @@ class Utils(object):
         if extra:
             comment = comment + '\n<hr>\n\n' + request.POST.get('challenge-extra', challenge_extra).strip()
         
+        return comment
+
+    @staticmethod
+    def append_requirement_to_comment(mode, comment, reqs, request):
+        bonusReq = [req for req in reqs[mode] if req['bonus']]
+        sortedReq = [req for req in reqs[mode] if req not in bonusReq]
+        for requirement in sorted(sortedReq, key=itemgetter('number')):
+            comment = comment + Utils.create_requirement_string(requirement, request.POST.get('format', 'old'))
+        for requirement in sorted(bonusReq, key=itemgetter('number')):
+            comment = comment + Utils.create_requirement_string(requirement, request.POST.get('format', 'old'))
         return comment
 
     @staticmethod
