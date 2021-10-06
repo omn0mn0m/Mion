@@ -2,7 +2,7 @@
 
 ![Website](https://img.shields.io/website?down_color=lightgrey&down_message=offline&up_color=green&up_message=online&url=https%3A%2F%2Fmii-chan.herokuapp.com) ![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/omn0mn0m/mion?include_prereleases) ![GitHub](https://img.shields.io/github/license/omn0mn0m/mion)
 
-Mion is an unofficial open-source Django web application that helps manage Anime Watch Club and Manga Reading Club challenges. Mion is able to make challenge forum posts for you, edit them, and delete them. No more having to parse through a challenge code manually to add an anime to a requirement.
+Mion is an unofficial open-source Django web application that helps manage anime and manga challenges. Mion is able to make challenge forum posts for you, edit them, and delete them. No more having to parse through a challenge code manually to add an anime to a requirement.
 
 ## Installation
 Mion is configured to run on Heroku, but can also run locally.
