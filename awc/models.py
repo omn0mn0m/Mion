@@ -100,6 +100,7 @@ class Submission(models.Model):
     comment_id = models.IntegerField()
 
     submission_comment_id = models.IntegerField(blank=True, null=True)
+    submission_thread_id = models.IntegerField(default=4446) # default set to old submission thread id since field did not previously exist
 
     def __str__(self):
         return "{} Submission".format(self.challenge)
