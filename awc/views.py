@@ -357,7 +357,7 @@ def submit_post(request, challenge_name, thread_id, comment_id):
     
     # Variables for the GraphQL query
     variables = {
-        'thread_id': 4446,
+        'thread_id': 38857,
         'comment': comment,
     }
     
@@ -366,6 +366,7 @@ def submit_post(request, challenge_name, thread_id, comment_id):
     
     submission = get_object_or_404(Submission, user__name=request.session['user']['name'], challenge__name=challenge_name)
     submission.submission_comment_id = response_data['data']['SaveThreadComment']['id']
+    submission.submission_thread_id = response_data['data']['SaveThreadComment']['threadId']
     submission.save()
 
     return HttpResponseRedirect(reverse('awc:index'))

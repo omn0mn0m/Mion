@@ -23,6 +23,7 @@ class Anilist:
     mutation ($thread_id: Int, $comment: String) {
       SaveThreadComment (threadId: $thread_id, comment: $comment) {
         id,
+        threadId,
       }
     }
     '''
