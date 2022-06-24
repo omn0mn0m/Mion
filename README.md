@@ -21,14 +21,14 @@ docker-compose up
 ## Environment Variables
 The following environment variables should be set for Django:
 
-- DJANGO_SECRET_KEY
-- DJANGO_DEBUG
+- `DJANGO_SECRET_KEY`
+- `DJANGO_DEBUG`
 
 The following environment variables should be set for the Anilist API:
 
-- ANILIST_CLIENT_ID
-- ANILIST_CLIENT_SECRET
-- ANILIST_REDIRECT_URI
+- `ANILIST_CLIENT_ID`
+- `ANILIST_CLIENT_SECRET`
+- `ANILIST_REDIRECT_URI`
 
 Environment variables can be set locally in a `.env` file in the root project directory. Environment variables can be set in production using `heroku config:set VARIABLE=VALUE`.
 
